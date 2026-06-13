@@ -42,18 +42,16 @@ export default function HostLobbyPage() {
       const user = await ensureAuthenticated()
       const newCode = await createUniqueRoomCode()
 
-      await Promise.all([
-        initRoom(newCode, user.uid, 'Host', game),
-        addPlayer(newCode, {
-          id: user.uid,
-          name: 'Host',
-          score: 0,
-          connected: true,
-          isHost: true,
-          avatarColor: AVATAR_COLORS[0],
-          joinedAt: Date.now(),
-        }),
-      ])
+      await initRoom(newCode, user.uid, 'Host', game)
+      await addPlayer(newCode, {
+        id: user.uid,
+        name: 'Host',
+        score: 0,
+        connected: true,
+        isHost: true,
+        avatarColor: AVATAR_COLORS[0],
+        joinedAt: Date.now(),
+      })
 
       registerPresence(newCode, user.uid, true)
       setPlayer(user.uid, 'Host')
