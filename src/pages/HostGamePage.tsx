@@ -89,6 +89,7 @@ export default function HostGamePage() {
   // ── Answering → Voting transition ──────────────────────────────────────────
   useEffect(() => {
     if (gameState !== 'answering' || !roundData || !system || !roomCode || transitioning.current) return
+    if (!playerList.length) return
 
     const nonHostPlayers = playerList.filter(p => !p.isHost)
     // Final lash: only playerA+playerB answer (1 prompt, 2 writers); rounds 1-2: each player answers 2 prompts
