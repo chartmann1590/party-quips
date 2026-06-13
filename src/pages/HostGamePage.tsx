@@ -63,8 +63,11 @@ export default function HostGamePage() {
         setPromptIds(ids)
         transitioning.current = false
       })
-      .catch(console.error)
-  }, [gameState, roomCode, meta?.game])
+      .catch(err => {
+        transitioning.current = false
+        console.error(err)
+      })
+  }, [gameState, roomCode, meta?.game, playerList.length])
 
   // Collect promptIds from roundData when it arrives
   useEffect(() => {
