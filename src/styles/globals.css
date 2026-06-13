@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-color: #0f0f1a;
+    color: #f0f0ff;
+    font-family: 'Nunito', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Prevent scroll bounce on iOS */
+    overscroll-behavior: none;
+  }
+
+  #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Prevent iOS tap highlight */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #1a1a2e;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2d2d4e;
+    border-radius: 3px;
+  }
+}
+
+@layer components {
+  .neon-text-purple {
+    color: #b537f2;
+    text-shadow: 0 0 10px rgba(181, 55, 242, 0.7), 0 0 30px rgba(181, 55, 242, 0.4);
+  }
+  .neon-text-cyan {
+    color: #00f5ff;
+    text-shadow: 0 0 10px rgba(0, 245, 255, 0.7), 0 0 30px rgba(0, 245, 255, 0.4);
+  }
+  .neon-text-yellow {
+    color: #ffeb00;
+    text-shadow: 0 0 10px rgba(255, 235, 0, 0.7), 0 0 30px rgba(255, 235, 0, 0.4);
+  }
+  .neon-text-pink {
+    color: #ff2d78;
+    text-shadow: 0 0 10px rgba(255, 45, 120, 0.7), 0 0 30px rgba(255, 45, 120, 0.4);
+  }
+  .neon-text-green {
+    color: #39ff14;
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.7), 0 0 30px rgba(57, 255, 20, 0.4);
+  }
+
+  .neon-border {
+    border: 2px solid rgba(181, 55, 242, 0.6);
+    box-shadow: 0 0 10px rgba(181, 55, 242, 0.3), inset 0 0 10px rgba(181, 55, 242, 0.1);
+  }
+
+  .neon-border-cyan {
+    border: 2px solid rgba(0, 245, 255, 0.6);
+    box-shadow: 0 0 10px rgba(0, 245, 255, 0.3), inset 0 0 10px rgba(0, 245, 255, 0.1);
+  }
+
+  .btn-primary {
+    @apply bg-neon-purple text-white font-display text-xl px-8 py-4 rounded-2xl
+           transition-all duration-200 cursor-pointer select-none
+           hover:bg-neon-purple-light hover:scale-105 active:scale-95;
+    box-shadow: 0 0 20px rgba(181, 55, 242, 0.4);
+  }
+
+  .btn-secondary {
+    @apply bg-transparent text-neon-cyan font-display text-xl px-8 py-4 rounded-2xl
+           transition-all duration-200 cursor-pointer select-none
+           hover:bg-neon-cyan/10 hover:scale-105 active:scale-95;
+    border: 2px solid rgba(0, 245, 255, 0.6);
+  }
+
+  .game-card {
+    @apply bg-game-surface rounded-2xl p-6;
+    border: 1px solid rgba(45, 45, 78, 0.8);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .input-field {
+    @apply w-full bg-game-surface text-text-primary text-2xl font-body
+           px-6 py-4 rounded-xl outline-none transition-all duration-200;
+    border: 2px solid rgba(45, 45, 78, 0.8);
+  }
+  .input-field:focus {
+    border-color: rgba(181, 55, 242, 0.8);
+    box-shadow: 0 0 15px rgba(181, 55, 242, 0.2);
+  }
+  .input-field::placeholder {
+    color: rgba(136, 136, 170, 0.5);
+  }
+}
