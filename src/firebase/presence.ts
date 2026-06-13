@@ -1,20 +1,22 @@
 import { ref, set, onDisconnect as fbOnDisconnect } from 'firebase/database'
 import { db } from './config'
-import { playerConnectedRef, roomMetaRef } from './database'
+import { playerConnectedRef } from './database'
 
 export function registerPresence(roomCode: string, playerId: string, isHost: boolean) {
   const connectedRef = playerConnectedRef(roomCode, playerId)
 
-  // Mark as connected immediately
   set(connectedRef, true)
-
-  // Firebase server will set to false when WebSocket drops
   fbOnDisconnect(connectedRef).set(false)
 
-  // If host disconnects, mark the room as done so players aren't stranded
   if (isHost) {
-    const metaRef = roomMetaRef(roomCode)
-    fbOnDisconnect(metaRef).update({ state: 'done' })
+    // Track host online status separately — do NOT touch room state on disconnect.
+    // Setting state:'done' on disconnect was too aggressive: any brief network
+    // hiccup (phone switching towers, page refresh) would permanently kill the
+    // room before players could join. The room only reaches 'done' when the
+    // host explicitly ends the game via the UI.
+    const hostOnlineRef = ref(db, `rooms/${roomCode}/meta/hostOnline`)
+    set(hostOnlineRef, true)
+    fbOnDisconnect(hostOnlineRef).set(false)
   }
 }
 

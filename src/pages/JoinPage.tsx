@@ -79,7 +79,7 @@ export default function JoinPage() {
 
       const snap = await get(roomMetaRef(code))
       if (!snap.exists()) { setError(`Room "${code}" not found`); setLoading(false); return }
-      if (snap.val().state === 'done') { setError('That game is already over'); setLoading(false); return }
+      if (snap.val().state === 'done' && snap.val().hostOnline !== true) { setError('That game is already over'); setLoading(false); return }
 
       const color = AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)]
 
