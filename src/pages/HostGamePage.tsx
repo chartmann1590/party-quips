@@ -145,7 +145,7 @@ export default function HostGamePage() {
 
   // ── Results → next prompt or next round ────────────────────────────────────
   useEffect(() => {
-    if (gameState !== 'results' || !roundData || !roomCode || transitioning.current) return
+    if (gameState !== 'results' || !roundData || !roomCode) return
 
     if (resultsTimer.current) clearTimeout(resultsTimer.current)
     resultsTimer.current = setTimeout(async () => {
