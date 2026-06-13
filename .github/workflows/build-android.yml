@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -58,9 +61,13 @@ jobs:
         run: ./gradlew assembleRelease
         working-directory: android
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: party-quips-release
-          path: android/app/build/outputs/apk/release/app-release.apk
-          retention-days: 30
+      - name: Create GitHub Release
+        run: |
+          TAG="v$(date +'%Y.%m.%d')-$(git rev-parse --short HEAD)"
+          APK_NAME="party-quips-${TAG}.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "$APK_NAME"
+          gh release create "$TAG" "$APK_NAME" \
+            --title "Party Quips $TAG" \
+            --notes "Signed release APK — commit ${{ github.sha }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
