@@ -244,9 +244,9 @@ export default function MobileHomePage() {
           className="flex gap-2 justify-center flex-wrap"
         >
           {[
-            { label: 'Quiplash', emoji: '😂', color: '#0891b2' },
-            { label: 'Fibbage', emoji: '🤥', color: '#ea580c' },
-            { label: 'Trivia', emoji: '💀', color: '#dc2626' },
+            { label: 'Witty Quips', emoji: '😂', color: '#0891b2' },
+            { label: 'Fib Finder', emoji: '🤥', color: '#ea580c' },
+            { label: 'Deadly Trivia', emoji: '💀', color: '#dc2626' },
           ].map(g => (
             <div
               key={g.label}
