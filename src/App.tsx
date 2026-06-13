@@ -7,11 +7,13 @@ import PlayerLobbyPage from './pages/PlayerLobbyPage'
 import PlayerGamePage from './pages/PlayerGamePage'
 import NotFoundPage from './pages/NotFoundPage'
 import PWAInstallBanner from './components/shared/PWAInstallBanner'
+import AndroidAppBanner from './components/shared/AndroidAppBanner'
 
 export default function App() {
   return (
     <HashRouter>
       <PWAInstallBanner />
+      <AndroidAppBanner />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/host" element={<HostLobbyPage />} />
