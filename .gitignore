@@ -10,3 +10,5 @@ Thumbs.db
 *.log
 .claude/
 Github Issue Tracker Prompt.txt
+*.png
+.playwright-mcp/
