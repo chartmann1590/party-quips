@@ -11,7 +11,7 @@ export default function RoomCode({ code, size = 'normal' }: RoomCodeProps) {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <p className="font-label text-sm uppercase tracking-[0.2em] text-pq-muted font-semibold">
+      <p className="font-label text-sm uppercase tracking-[0.2em] font-semibold" style={{ color: 'rgba(255,255,255,0.6)' }}>
         Room Code
       </p>
       <div className="flex gap-3">
@@ -22,13 +22,14 @@ export default function RoomCode({ code, size = 'normal' }: RoomCodeProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: i * 0.08, type: 'spring', stiffness: 400, damping: 20 }}
             className={`${boxSize} ${charClass} room-code-box`}
+            style={{ background: '#fde047', color: '#1e1b4b', border: '3px solid #ca8a04' }}
           >
             {char}
           </motion.div>
         ))}
       </div>
-      <p className="text-pq-muted font-label text-sm mt-1">
-        Go to <span className="text-pq-pink font-semibold">party-quips</span> on your phone
+      <p className="font-label text-sm mt-1" style={{ color: 'rgba(255,255,255,0.55)' }}>
+        Go to <span className="font-black" style={{ color: '#fde047' }}>party-quips</span> on your phone
       </p>
     </div>
   )

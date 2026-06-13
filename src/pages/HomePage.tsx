@@ -12,16 +12,16 @@ const GAME_ICONS: Record<GameType, string> = {
   trivia: '💀',
 }
 
-const GAME_GRADIENTS: Record<GameType, string> = {
-  quiplash: 'linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%)',
-  fibbage: 'linear-gradient(135deg, #7c2d12 0%, #ea580c 100%)',
-  trivia: 'linear-gradient(135deg, #831843 0%, #ec4899 100%)',
+const GAME_COLORS: Record<GameType, string> = {
+  quiplash: '#0891b2',
+  fibbage: '#ea580c',
+  trivia: '#dc2626',
 }
 
-const GAME_GLOW: Record<GameType, string> = {
-  quiplash: 'rgba(124, 58, 237, 0.5)',
-  fibbage: 'rgba(234, 88, 12, 0.5)',
-  trivia: 'rgba(236, 72, 153, 0.5)',
+const GAME_SHADOW_COLORS: Record<GameType, string> = {
+  quiplash: '#0e7490',
+  fibbage: '#c2410c',
+  trivia: '#b91c1c',
 }
 
 export default function HomePage() {
@@ -39,117 +39,187 @@ export default function HomePage() {
 
   return (
     <TVLayout>
-      <div className="flex flex-col items-center justify-center flex-1 px-8 py-10 gap-10">
+      <div className="flex flex-col flex-1 px-10 py-8 gap-6 max-h-screen overflow-hidden">
 
-        {/* Hero title */}
+        {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 22 }}
           className="text-center"
         >
           <h1
-            className="font-display font-black text-7xl md:text-8xl tracking-tight"
+            className="font-display font-black leading-none tracking-tight"
             style={{
-              color: '#ffffff',
-              textShadow: '0 0 40px rgba(236,72,153,0.6), 0 0 80px rgba(168,85,247,0.3)',
+              fontSize: 'clamp(3.5rem, 7vw, 6rem)',
+              color: '#fde047',
+              textShadow: '4px 4px 0 #92400e, 0 0 60px rgba(253,224,71,0.3)',
             }}
           >
             🎉 PARTY QUIPS
           </h1>
-          <p className="text-pq-muted font-label text-xl mt-2 tracking-wide">
+          <p
+            className="font-label font-semibold mt-2 tracking-widest uppercase"
+            style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.95rem' }}
+          >
             The hilarious game show for your phone and TV
           </p>
         </motion.div>
 
-        {/* Main area */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 20 }}
-          className="flex flex-col lg:flex-row gap-6 items-stretch w-full max-w-5xl"
-        >
-          {/* Left: Join a Game */}
-          <div className="glass-card p-8 flex flex-col gap-5 min-w-[280px] lg:w-80">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📱</div>
-              <h2 className="font-display font-black text-2xl text-white">Join a Game</h2>
-              <p className="text-pq-muted font-label text-sm mt-1">Got a room code? Jump in!</p>
-            </div>
-            <div className="flex flex-col gap-3">
+        {/* Main layout */}
+        <div className="flex flex-1 gap-8 items-stretch min-h-0">
+
+          {/* LEFT — Join a Game (white card) */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1, type: 'spring', stiffness: 200, damping: 22 }}
+            className="flex-none flex flex-col rounded-3xl overflow-hidden"
+            style={{
+              width: 'clamp(240px, 22vw, 300px)',
+              background: '#ffffff',
+              boxShadow: '0 8px 0 rgba(0,0,0,0.25), 0 16px 40px rgba(0,0,0,0.3)',
+            }}
+          >
+            <div className="flex flex-col flex-1 p-8 gap-5">
+              <div className="text-center">
+                <div style={{ fontSize: '2.5rem' }}>📱</div>
+                <h2
+                  className="font-display font-black text-2xl mt-2"
+                  style={{ color: '#1e1b4b' }}
+                >
+                  JOIN A GAME
+                </h2>
+                <p className="font-label text-sm mt-1" style={{ color: '#6b7280' }}>
+                  Enter the room code from the TV
+                </p>
+              </div>
+
               <input
-                className="input-field uppercase tracking-[0.3em] font-display font-bold text-center text-3xl"
+                className="font-display font-black text-center rounded-xl px-4 py-3 outline-none tracking-[0.3em] uppercase w-full transition-all duration-150"
+                style={{
+                  fontSize: '2rem',
+                  background: '#f3f4f6',
+                  border: '3px solid #e5e7eb',
+                  color: '#1e1b4b',
+                }}
+                onFocus={e => (e.target.style.borderColor = '#fbbf24')}
+                onBlur={e => (e.target.style.borderColor = '#e5e7eb')}
                 placeholder="ABCD"
                 value={codeInput}
                 maxLength={4}
                 onChange={e => setCodeInput(e.target.value.toUpperCase().replace(/[^A-Z]/g, ''))}
                 onKeyDown={e => e.key === 'Enter' && handleJoinSubmit()}
               />
+
               <motion.button
-                whileHover={{ scale: 1.03 }}
+                whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleJoinSubmit}
                 className="btn-primary w-full"
               >
-                JOIN →
+                JOIN GAME →
               </motion.button>
+
+              <button
+                className="font-label text-sm text-center transition-colors"
+                style={{ color: '#9ca3af' }}
+                onMouseOver={e => ((e.target as HTMLElement).style.color = '#4b5563')}
+                onMouseOut={e => ((e.target as HTMLElement).style.color = '#9ca3af')}
+                onClick={() => navigate('/join')}
+              >
+                Enter name + code →
+              </button>
             </div>
-            <button
-              className="text-pq-muted font-label text-sm underline underline-offset-2 hover:text-pq-pink transition-colors"
-              onClick={() => navigate('/join')}
+          </motion.div>
+
+          {/* OR divider */}
+          <div className="flex flex-col items-center justify-center gap-3 flex-none">
+            <div className="flex-1 w-px" style={{ background: 'rgba(255,255,255,0.2)' }} />
+            <span
+              className="font-display font-black text-xl"
+              style={{ color: 'rgba(255,255,255,0.4)' }}
             >
-              Enter full details →
-            </button>
+              OR
+            </span>
+            <div className="flex-1 w-px" style={{ background: 'rgba(255,255,255,0.2)' }} />
           </div>
 
-          {/* Divider */}
-          <div className="flex items-center justify-center">
-            <span className="text-pq-muted font-display font-bold text-2xl opacity-60">OR</span>
-          </div>
+          {/* RIGHT — Host on TV */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 22 }}
+            className="flex flex-col flex-1 gap-4 min-h-0"
+          >
+            <p
+              className="font-label font-semibold uppercase tracking-[0.2em] text-center"
+              style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.8rem' }}
+            >
+              🖥️ HOST ON YOUR TV — PICK A GAME
+            </p>
 
-          {/* Right: Host on TV */}
-          <div className="flex flex-col gap-4 flex-1">
-            <h2 className="font-display font-black text-2xl text-white text-center">
-              🖥️ Host on TV
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+            <div className="flex gap-4 flex-1 min-h-0">
               {GAMES.map((game, i) => (
                 <motion.button
                   key={game}
-                  initial={{ opacity: 0, scale: 0.85, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  transition={{ delay: 0.25 + i * 0.08, type: 'spring', stiffness: 300, damping: 22 }}
-                  whileHover={{ scale: 1.04, y: -4 }}
-                  whileTap={{ scale: 0.96 }}
+                  initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: 0.2 + i * 0.07, type: 'spring', stiffness: 260, damping: 22 }}
+                  whileHover={{ y: -6, scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => navigate(`/host?game=${game}`)}
-                  className="flex flex-col items-center gap-3 p-6 rounded-2xl cursor-pointer transition-all text-left"
+                  className="flex flex-col rounded-3xl cursor-pointer text-white text-left overflow-hidden flex-1"
                   style={{
-                    background: GAME_GRADIENTS[game],
-                    boxShadow: `0 4px 25px ${GAME_GLOW[game]}, 0 0 40px ${GAME_GLOW[game]}50`,
-                    border: '1px solid rgba(255,255,255,0.15)',
+                    background: GAME_COLORS[game],
+                    boxShadow: `0 8px 0 ${GAME_SHADOW_COLORS[game]}, 0 14px 35px rgba(0,0,0,0.35)`,
+                    border: '3px solid rgba(255,255,255,0.2)',
+                    padding: 'clamp(1rem, 2vw, 1.75rem)',
                   }}
                 >
-                  <span className="text-5xl">{GAME_ICONS[game]}</span>
-                  <div className="text-center">
-                    <div className="font-display font-black text-xl text-white">
+                  <div style={{ fontSize: 'clamp(3rem, 5vw, 5rem)' }} className="leading-none">
+                    {GAME_ICONS[game]}
+                  </div>
+
+                  <div className="mt-auto pt-4">
+                    <div
+                      className="font-display font-black leading-tight"
+                      style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)' }}
+                    >
                       {GAME_LABELS[game]}
                     </div>
-                    <div className="font-label text-xs text-white/70 mt-1 leading-tight">
+                    <div
+                      className="font-label mt-1 leading-snug"
+                      style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.75)' }}
+                    >
                       {GAME_DESCRIPTIONS[game]}
+                    </div>
+                    <div
+                      className="mt-4 inline-block rounded-full font-display font-black uppercase"
+                      style={{
+                        background: 'rgba(0,0,0,0.25)',
+                        padding: '0.4rem 1rem',
+                        fontSize: '0.8rem',
+                        letterSpacing: '0.05em',
+                        border: '2px solid rgba(255,255,255,0.25)',
+                      }}
+                    >
+                      HOST THIS →
                     </div>
                   </div>
                 </motion.button>
               ))}
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
 
         {/* Footer */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-pq-muted font-label text-sm text-center tracking-wide"
+          transition={{ delay: 0.6 }}
+          className="font-label text-center"
+          style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', letterSpacing: '0.05em' }}
         >
           2–8 players • Free • No download required • PWA on iPhone ✓
         </motion.p>

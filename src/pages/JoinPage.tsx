@@ -115,12 +115,18 @@ export default function JoinPage() {
           className="text-center pt-4"
         >
           <h1
-            className="font-display font-black text-5xl text-white"
-            style={{ textShadow: '0 0 30px rgba(236,72,153,0.5)' }}
+            className="font-display font-black leading-none"
+            style={{
+              fontSize: '2.75rem',
+              color: '#fde047',
+              textShadow: '3px 3px 0 #92400e',
+            }}
           >
             🎉 PARTY QUIPS
           </h1>
-          <p className="text-pq-muted font-label text-sm mt-1 tracking-wide">Join the fun!</p>
+          <p className="font-label text-sm mt-2 tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.6)' }}>
+            Join the fun!
+          </p>
         </motion.div>
 
         {/* Form card */}
@@ -132,7 +138,7 @@ export default function JoinPage() {
         >
           {/* Room code boxes */}
           <div className="flex flex-col gap-3">
-            <label className="font-label text-xs uppercase tracking-[0.15em] text-pq-muted font-semibold text-center">
+            <label className="font-label text-xs uppercase tracking-[0.2em] font-semibold text-center" style={{ color: 'rgba(255,255,255,0.6)' }}>
               Room Code
             </label>
             <div className="flex gap-2 justify-center" onPaste={handlePaste}>
@@ -149,7 +155,12 @@ export default function JoinPage() {
                   onFocus={e => e.target.select()}
                   disabled={loading}
                   className="room-code-box w-16 h-16 text-3xl font-black text-center uppercase"
-                  style={{ caretColor: 'transparent' }}
+                  style={{
+                    caretColor: 'transparent',
+                    background: '#fde047',
+                    color: '#1e1b4b',
+                    border: '3px solid #ca8a04',
+                  }}
                   aria-label={`Room code character ${i + 1}`}
                 />
               ))}
@@ -158,7 +169,7 @@ export default function JoinPage() {
 
           {/* Name input */}
           <div className="flex flex-col gap-2">
-            <label className="font-label text-xs uppercase tracking-[0.15em] text-pq-muted font-semibold">
+            <label className="font-label text-xs uppercase tracking-[0.2em] font-semibold" style={{ color: 'rgba(255,255,255,0.6)' }}>
               Your Name
             </label>
             <input
@@ -179,9 +190,9 @@ export default function JoinPage() {
               animate={{ opacity: 1, scale: 1 }}
               className="px-4 py-2 rounded-full text-center font-label text-sm"
               style={{
-                background: 'rgba(255, 180, 171, 0.15)',
-                border: '1px solid rgba(255, 180, 171, 0.4)',
-                color: '#ffb4ab',
+                background: 'rgba(252, 165, 165, 0.15)',
+                border: '1px solid rgba(252, 165, 165, 0.4)',
+                color: '#fca5a5',
               }}
             >
               ⚠️ {error}
@@ -196,15 +207,20 @@ export default function JoinPage() {
             onClick={handleJoin}
             disabled={loading}
           >
-            {loading ? '⏳ Joining...' : 'Join Game →'}
+            {loading ? '⏳ Joining...' : 'JOIN GAME →'}
           </motion.button>
         </motion.div>
 
         {/* Footer */}
         <div className="flex flex-col items-center gap-2">
-          <p className="text-pq-muted font-label text-xs tracking-wide">No account needed</p>
+          <p className="font-label text-xs tracking-wide" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            No account needed
+          </p>
           <button
-            className="text-pq-muted font-label text-sm underline underline-offset-2 hover:text-pq-pink transition-colors"
+            className="font-label text-sm transition-colors"
+            style={{ color: 'rgba(255,255,255,0.5)' }}
+            onMouseOver={e => ((e.target as HTMLElement).style.color = '#fde047')}
+            onMouseOut={e => ((e.target as HTMLElement).style.color = 'rgba(255,255,255,0.5)')}
             onClick={() => navigate('/')}
           >
             ← Back to home

@@ -20,14 +20,17 @@ export default function StartButton({ onStart, playerCount, minPlayers = 2, disa
         whileTap={canStart ? { scale: 0.95 } : {}}
         className={`
           font-display font-bold text-2xl px-12 py-5 rounded-full transition-all duration-200
-          ${canStart ? 'text-white cursor-pointer' : 'cursor-not-allowed text-pq-muted'}
+          ${canStart ? 'cursor-pointer' : 'cursor-not-allowed'}
         `}
         style={canStart ? {
-          background: 'linear-gradient(135deg, #ec4899, #f751a1)',
-          boxShadow: '0 0 30px rgba(236,72,153,0.5), 0 4px 20px rgba(236,72,153,0.4)',
+          background: '#fde047',
+          color: '#1e1b4b',
+          boxShadow: '0 6px 0 #a16207, 0 10px 30px rgba(253,224,71,0.4)',
         } : {
-          background: 'rgba(255,255,255,0.08)',
-          border: '1px solid rgba(255,255,255,0.15)',
+          background: 'rgba(255,255,255,0.1)',
+          color: 'rgba(255,255,255,0.35)',
+          border: '2px solid rgba(255,255,255,0.15)',
+          boxShadow: 'none',
         }}
       >
         {canStart ? '🎮 START GAME' : 'Waiting...'}
