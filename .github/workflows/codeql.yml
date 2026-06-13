@@ -32,7 +32,7 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      - run: npm install
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
