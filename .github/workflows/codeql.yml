@@ -1,33 +1,40 @@
-name: Deploy to GitHub Pages
+name: CodeQL Security Scan
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 8 * * 1'
 
 permissions:
+  actions: read
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
+  security-events: write
 
 jobs:
-  build:
+  analyze:
+    name: Analyze (javascript-typescript)
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: 22
+          cache: npm
 
       - run: npm ci
 
-      - name: Build
+      - name: Build for CodeQL
         run: npm run build
         env:
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
@@ -40,16 +47,7 @@ jobs:
           VITE_GITHUB_REPO_OWNER: ${{ secrets.VITE_GITHUB_REPO_OWNER }}
           VITE_GITHUB_REPO_NAME: ${{ secrets.VITE_GITHUB_REPO_NAME }}
 
-      - uses: actions/upload-pages-artifact@v3
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
         with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/deploy-pages@v4
-        id: deployment
+          category: /language:javascript-typescript
