@@ -206,8 +206,9 @@ export async function beginFibbageVoting(
   const prompt = fibbageData.prompts[promptId]
   if (!prompt) return
 
-  // Collect all fake answers + real answer and shuffle
-  const fakeAnswers = Object.values(prompt.playerEntries ?? {})
+  // Deduplicate fakes and exclude the real answer from fakes list
+  const fakeAnswers = [...new Set(Object.values(prompt.playerEntries ?? {}))]
+    .filter(a => a.toLowerCase().trim() !== prompt.realAnswer.toLowerCase().trim())
   const allChoices = shuffleArray([...fakeAnswers, prompt.realAnswer])
 
   await writeFibbageChoices(code, round, promptId, allChoices)

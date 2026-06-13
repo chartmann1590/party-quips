@@ -2,7 +2,7 @@
  * HostGamePage — the game coordinator.
  * Only the host's browser runs this page; it drives all state transitions.
  */
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import TVLayout from '../components/layout/TVLayout'
@@ -13,6 +13,8 @@ import ScoreBoard from '../components/shared/ScoreBoard'
 import CountdownTimer from '../components/shared/CountdownTimer'
 import PlayerList from '../components/lobby/PlayerList'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
+import HostFibbageGame from './HostFibbageGame'
+import HostTriviaGame from './HostTriviaGame'
 import { useRoomMeta, usePlayers } from '../hooks/useRoom'
 import { useQuiplashRound, useSystemData } from '../hooks/useGameState'
 import { useGameStore } from '../store/gameStore'
@@ -26,7 +28,6 @@ import {
 import { calculateQuiplashScores } from '../lib/scoring'
 import { setRoomState } from '../firebase/database'
 import { ROUNDS_TOTAL, RESULTS_TIME_SECONDS } from '../types/quiplash'
-import type { Player } from '../types/room'
 
 export default function HostGamePage() {
   const navigate = useNavigate()
@@ -312,6 +313,10 @@ export default function HostGamePage() {
       </div>
     )
   }
+
+  // Dispatch to game-specific coordinators
+  if (meta?.game === 'fibbage') return <HostFibbageGame />
+  if (meta?.game === 'trivia') return <HostTriviaGame />
 
   if (!meta || gameState === 'lobby') {
     return (

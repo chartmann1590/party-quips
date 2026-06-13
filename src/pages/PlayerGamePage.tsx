@@ -7,17 +7,19 @@ import AnswerInput from '../components/game/quiplash/AnswerInput'
 import VoteButton from '../components/game/quiplash/VoteButton'
 import FibInput from '../components/game/fibbage/FibInput'
 import AnswerPicker from '../components/game/fibbage/AnswerPicker'
+import TriviaAnswerButtons from '../components/game/trivia/TriviaAnswerButtons'
 import ScoreBoard from '../components/shared/ScoreBoard'
 import CountdownTimer from '../components/shared/CountdownTimer'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useRoomMeta, usePlayers } from '../hooks/useRoom'
-import { useQuiplashRound, useSystemData, useFibbageRound } from '../hooks/useGameState'
+import { useQuiplashRound, useSystemData, useFibbageRound, useTriviaRound } from '../hooks/useGameState'
 import { useGameStore } from '../store/gameStore'
 import {
   submitQuiplashAnswer,
   submitQuiplashVote,
   submitFibbageEntry,
   submitFibbageVote,
+  submitTriviaAnswer,
 } from '../firebase/database'
 
 export default function PlayerGamePage() {
@@ -34,13 +36,16 @@ export default function PlayerGamePage() {
 
   const { data: quiplashRound } = useQuiplashRound(game === 'quiplash' ? roomCode : null, round)
   const { data: fibbageRound } = useFibbageRound(game === 'fibbage' ? roomCode : null, round)
+  const { data: triviaRound } = useTriviaRound(game === 'trivia' ? roomCode : null, round)
 
   const [myVote, setMyVote] = useState<string | null>(null)
   const [fibChoice, setFibChoice] = useState<string | null>(null)
+  const [triviaChoice, setTriviaChoice] = useState<number | null>(null)
 
   useEffect(() => {
     setMyVote(null)
     setFibChoice(null)
+    setTriviaChoice(null)
   }, [round, gameState])
 
   useEffect(() => {
@@ -82,6 +87,12 @@ export default function PlayerGamePage() {
     if (!roomCode || !playerId) return
     setFibChoice(choice)
     await submitFibbageVote(roomCode, round, playerId, choice)
+  }
+
+  async function handleTriviaAnswer(index: number) {
+    if (!roomCode || !playerId || triviaChoice !== null) return
+    setTriviaChoice(index)
+    await submitTriviaAnswer(roomCode, round, playerId, index)
   }
 
   // ── Render helpers ─────────────────────────────────────────────────────────
@@ -252,12 +263,33 @@ export default function PlayerGamePage() {
     )
   }
 
+  function renderTriviaAnswering() {
+    if (!triviaRound) return <LoadingSpinner size="md" label="Loading question..." />
+    const displayOptions = triviaRound.question.displayOptions ?? triviaRound.question.options
+    const alreadySubmitted = !!triviaRound.submitted?.[playerId ?? '']
+    const submittedIndex = alreadySubmitted
+      ? (triviaRound.answers?.[playerId ?? ''] ?? triviaChoice)
+      : triviaChoice
+
+    return (
+      <TriviaAnswerButtons
+        question={triviaRound.question.text}
+        displayOptions={displayOptions}
+        selectedIndex={submittedIndex}
+        onAnswer={handleTriviaAnswer}
+        system={system ?? null}
+      />
+    )
+  }
+
   function renderResults() {
+    const emoji = game === 'trivia' ? '💀' : '📊'
+    const label = game === 'trivia' ? 'Watch the TV for the answer!' : 'Watch the big screen!'
     return (
       <div className="flex flex-col items-center gap-4 flex-1 justify-center">
-        <div className="text-6xl">📊</div>
+        <div className="text-6xl">{emoji}</div>
         <p className="font-display text-neon-purple text-2xl text-center">Results incoming...</p>
-        <p className="text-text-muted font-body text-center">Watch the big screen!</p>
+        <p className="text-text-muted font-body text-center">{label}</p>
         {myPlayer && (
           <div className="game-card w-full text-center">
             <p className="text-text-muted font-body text-sm">Your score</p>
@@ -302,6 +334,7 @@ export default function PlayerGamePage() {
             {game === 'quiplash' && gameState === 'voting' && renderQuiplashVoting()}
             {game === 'fibbage' && gameState === 'answering' && renderFibbageAnswering()}
             {game === 'fibbage' && gameState === 'voting' && renderFibbageVoting()}
+            {game === 'trivia' && gameState === 'answering' && renderTriviaAnswering()}
             {(gameState === 'results') && renderResults()}
             {gameState === 'scoreboard' && renderScoreboard()}
             {(!gameState || gameState === 'lobby') && (
