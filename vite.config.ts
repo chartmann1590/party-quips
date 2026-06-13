@@ -45,15 +45,15 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/.*\.firebaseio\.com/,
+            urlPattern: /^https:\/\/[^/?#]+\.firebaseio\.com\//,
             handler: 'NetworkOnly'
           },
           {
-            urlPattern: /^https:\/\/firestore\.googleapis\.com/,
+            urlPattern: /^https:\/\/firestore\.googleapis\.com\//,
             handler: 'NetworkOnly'
           },
           {
-            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com/,
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\//,
             handler: 'CacheFirst',
             options: {
               cacheName: 'google-fonts',

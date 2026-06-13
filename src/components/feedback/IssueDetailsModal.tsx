@@ -221,7 +221,7 @@ export default function IssueDetailsModal({ report, onClose, onUpdated }: Props)
                   disabled={submitting}
                 />
 
-                {replyPreview ? (
+                {replyPreview?.startsWith('blob:') ? (
                   <div className="relative rounded-xl overflow-hidden" style={{ maxHeight: 120 }}>
                     <img src={replyPreview} alt="Attachment preview" className="w-full object-cover" style={{ maxHeight: 120 }} />
                     <button

@@ -228,7 +228,7 @@ export default function BugReportModal({ onClose, onSubmitted }: Props) {
             <label className="font-label text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.7)' }}>
               Screenshot <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.75rem' }}>(optional — may contain private info)</span>
             </label>
-            {screenshotPreview ? (
+            {screenshotPreview?.startsWith('blob:') ? (
               <div className="relative rounded-2xl overflow-hidden" style={{ maxHeight: 180 }}>
                 <img src={screenshotPreview} alt="Preview" className="w-full object-cover" style={{ maxHeight: 180 }} />
                 <button
