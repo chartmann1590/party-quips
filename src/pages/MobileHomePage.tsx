@@ -154,28 +154,37 @@ export default function MobileHomePage() {
             {/* Code boxes */}
             <div className="flex gap-3 justify-center" onPaste={handlePaste}>
               {codeChars.map((char, i) => (
-                <input
-                  key={i}
-                  ref={inputRefs[i]}
-                  type="text"
-                  inputMode="text"
-                  maxLength={1}
-                  value={char}
-                  onChange={e => handleCharInput(i, e.target.value)}
-                  onKeyDown={e => handleCharKeyDown(i, e)}
-                  onFocus={e => e.target.select()}
-                  disabled={loading}
-                  className="w-16 h-16 text-3xl font-black text-center uppercase rounded-2xl outline-none transition-all duration-150"
-                  style={{
-                    caretColor: 'transparent',
-                    background: '#fde047',
-                    color: '#1e1b4b',
-                    border: '3px solid #ca8a04',
-                    boxShadow: '0 4px 0 #a16207',
-                    fontSize: '2rem',
-                  }}
-                  aria-label={`Room code character ${i + 1}`}
-                />
+                <div key={i} className="relative w-16 h-16">
+                  <input
+                    ref={inputRefs[i]}
+                    type="text"
+                    inputMode="text"
+                    maxLength={1}
+                    value={char}
+                    onChange={e => handleCharInput(i, e.target.value)}
+                    onKeyDown={e => handleCharKeyDown(i, e)}
+                    onFocus={e => e.target.select()}
+                    disabled={loading}
+                    className="w-full h-full font-black text-center uppercase rounded-2xl outline-none transition-all duration-150"
+                    style={{
+                      caretColor: 'transparent',
+                      background: '#fde047',
+                      color: '#1e1b4b',
+                      border: '3px solid #ca8a04',
+                      boxShadow: '0 4px 0 #a16207',
+                      fontSize: '2rem',
+                    }}
+                    aria-label={`Room code character ${i + 1}`}
+                  />
+                  {!char && (
+                    <span
+                      className="absolute inset-0 flex items-center justify-center font-black pointer-events-none select-none"
+                      style={{ color: 'rgba(30,27,75,0.25)', fontSize: '2rem' }}
+                    >
+                      {String.fromCharCode(65 + i)}
+                    </span>
+                  )}
+                </div>
               ))}
             </div>
 
@@ -249,12 +258,36 @@ export default function MobileHomePage() {
           ))}
         </motion.div>
 
+        {/* How it works */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.25 }}
+          className="rounded-2xl px-4 py-4"
+          style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+        >
+          <p className="font-label text-xs font-bold uppercase tracking-widest text-center mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            How to play
+          </p>
+          <div className="flex justify-around text-center">
+            {[
+              { step: '1', icon: '📺', text: 'Host opens the TV screen' },
+              { step: '2', icon: '📱', text: 'Players join with the code' },
+              { step: '3', icon: '😂', text: 'Everyone plays on their phone' },
+            ].map(s => (
+              <div key={s.step} className="flex flex-col items-center gap-1 flex-1">
+                <span style={{ fontSize: '1.4rem' }}>{s.icon}</span>
+                <p className="font-label text-xs leading-tight" style={{ color: 'rgba(255,255,255,0.55)' }}>{s.text}</p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
         {/* Host info */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mt-auto"
         >
           <button
             onClick={() => setShowHostInfo(v => !v)}
@@ -276,7 +309,7 @@ export default function MobileHomePage() {
                   className="mt-3 rounded-2xl px-4 py-4 text-sm leading-relaxed font-label text-center"
                   style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.7)' }}
                 >
-                  Open <span style={{ color: '#fde047', fontWeight: 700 }}>party-quips.app</span> on your TV or laptop to host a game. Players join using this app!
+                  Open <span style={{ color: '#fde047', fontWeight: 700 }}>chartmann1590.github.io/party-quips</span> on your TV or laptop to host. Players join with this app!
                 </div>
               </motion.div>
             )}
