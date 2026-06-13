@@ -16,23 +16,24 @@ export default function StartButton({ onStart, playerCount, minPlayers = 2, disa
       <motion.button
         onClick={canStart ? onStart : undefined}
         disabled={!canStart}
-        whileHover={canStart ? { scale: 1.05 } : {}}
+        whileHover={canStart ? { scale: 1.04 } : {}}
         whileTap={canStart ? { scale: 0.95 } : {}}
         className={`
-          font-display text-2xl px-12 py-5 rounded-2xl transition-all duration-200
-          ${canStart
-            ? 'bg-neon-purple text-white cursor-pointer'
-            : 'bg-game-border text-text-muted cursor-not-allowed opacity-60'
-          }
+          font-display font-bold text-2xl px-12 py-5 rounded-full transition-all duration-200
+          ${canStart ? 'text-white cursor-pointer' : 'cursor-not-allowed text-pq-muted'}
         `}
         style={canStart ? {
-          boxShadow: '0 0 30px rgba(181,55,242,0.6), 0 0 60px rgba(181,55,242,0.3)',
-        } : {}}
+          background: 'linear-gradient(135deg, #ec4899, #f751a1)',
+          boxShadow: '0 0 30px rgba(236,72,153,0.5), 0 4px 20px rgba(236,72,153,0.4)',
+        } : {
+          background: 'rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.15)',
+        }}
       >
-        {canStart ? '🎮 START GAME' : `Waiting...`}
+        {canStart ? '🎮 START GAME' : 'Waiting...'}
       </motion.button>
       {!canStart && needed > 0 && (
-        <p className="text-text-muted font-body text-sm">
+        <p className="text-pq-muted font-label text-sm">
           Need {needed} more player{needed !== 1 ? 's' : ''} to start
         </p>
       )}

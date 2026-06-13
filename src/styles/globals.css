@@ -11,12 +11,11 @@
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    background-color: #0f0f1a;
-    color: #f0f0ff;
-    font-family: 'Nunito', sans-serif;
+    background-color: #1c1014;
+    color: #f5dce3;
+    font-family: 'Bricolage Grotesque', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Prevent scroll bounce on iOS */
     overscroll-behavior: none;
   }
 
@@ -26,86 +25,126 @@
     flex-direction: column;
   }
 
-  /* Prevent iOS tap highlight */
   * {
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Scrollbar styling */
   ::-webkit-scrollbar {
     width: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #1a1a2e;
+    background: #291c21;
   }
   ::-webkit-scrollbar-thumb {
-    background: #2d2d4e;
+    background: #574048;
     border-radius: 3px;
   }
 }
 
 @layer components {
+  /* Text glow utilities */
   .neon-text-purple {
-    color: #b537f2;
-    text-shadow: 0 0 10px rgba(181, 55, 242, 0.7), 0 0 30px rgba(181, 55, 242, 0.4);
+    color: #a855f7;
+    text-shadow: 0 0 10px rgba(168, 85, 247, 0.7), 0 0 30px rgba(168, 85, 247, 0.4);
   }
   .neon-text-cyan {
-    color: #00f5ff;
-    text-shadow: 0 0 10px rgba(0, 245, 255, 0.7), 0 0 30px rgba(0, 245, 255, 0.4);
+    color: #06b6d4;
+    text-shadow: 0 0 10px rgba(6, 182, 212, 0.7), 0 0 30px rgba(6, 182, 212, 0.4);
   }
   .neon-text-yellow {
-    color: #ffeb00;
-    text-shadow: 0 0 10px rgba(255, 235, 0, 0.7), 0 0 30px rgba(255, 235, 0, 0.4);
+    color: #facc15;
+    text-shadow: 0 0 10px rgba(250, 204, 21, 0.7), 0 0 30px rgba(250, 204, 21, 0.4);
   }
   .neon-text-pink {
-    color: #ff2d78;
-    text-shadow: 0 0 10px rgba(255, 45, 120, 0.7), 0 0 30px rgba(255, 45, 120, 0.4);
+    color: #ec4899;
+    text-shadow: 0 0 10px rgba(236, 72, 153, 0.7), 0 0 30px rgba(236, 72, 153, 0.4);
   }
   .neon-text-green {
-    color: #39ff14;
-    text-shadow: 0 0 10px rgba(57, 255, 20, 0.7), 0 0 30px rgba(57, 255, 20, 0.4);
+    color: #4ade80;
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.7), 0 0 30px rgba(74, 222, 128, 0.4);
   }
 
+  /* Border glow utilities */
   .neon-border {
-    border: 2px solid rgba(181, 55, 242, 0.6);
-    box-shadow: 0 0 10px rgba(181, 55, 242, 0.3), inset 0 0 10px rgba(181, 55, 242, 0.1);
+    border: 2px solid rgba(168, 85, 247, 0.6);
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.3), inset 0 0 10px rgba(168, 85, 247, 0.1);
   }
-
   .neon-border-cyan {
-    border: 2px solid rgba(0, 245, 255, 0.6);
-    box-shadow: 0 0 10px rgba(0, 245, 255, 0.3), inset 0 0 10px rgba(0, 245, 255, 0.1);
+    border: 2px solid rgba(6, 182, 212, 0.6);
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.3), inset 0 0 10px rgba(6, 182, 212, 0.1);
   }
 
+  /* Glassmorphism card */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 1rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  /* Primary CTA button — pill-shaped hot pink */
   .btn-primary {
-    @apply bg-neon-purple text-white font-display text-xl px-8 py-4 rounded-2xl
-           transition-all duration-200 cursor-pointer select-none
-           hover:bg-neon-purple-light hover:scale-105 active:scale-95;
-    box-shadow: 0 0 20px rgba(181, 55, 242, 0.4);
+    @apply font-display font-bold text-xl px-8 py-4 rounded-full
+           transition-all duration-200 cursor-pointer select-none text-white
+           hover:scale-105 active:scale-95;
+    background: linear-gradient(135deg, #ec4899, #f751a1);
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.4), 0 4px 15px rgba(236, 72, 153, 0.3);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 30px rgba(236, 72, 153, 0.6), 0 4px 20px rgba(236, 72, 153, 0.4);
   }
 
+  /* Secondary button — violet outline */
   .btn-secondary {
-    @apply bg-transparent text-neon-cyan font-display text-xl px-8 py-4 rounded-2xl
+    @apply font-display font-bold text-xl px-8 py-4 rounded-full
            transition-all duration-200 cursor-pointer select-none
-           hover:bg-neon-cyan/10 hover:scale-105 active:scale-95;
-    border: 2px solid rgba(0, 245, 255, 0.6);
+           hover:scale-105 active:scale-95;
+    color: #e0b6ff;
+    background: rgba(168, 85, 247, 0.1);
+    border: 2px solid rgba(168, 85, 247, 0.5);
+  }
+  .btn-secondary:hover {
+    background: rgba(168, 85, 247, 0.2);
+    border-color: rgba(168, 85, 247, 0.8);
   }
 
+  /* Legacy game card */
   .game-card {
-    @apply bg-game-surface rounded-2xl p-6;
-    border: 1px solid rgba(45, 45, 78, 0.8);
+    @apply rounded-2xl p-6;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
   }
 
+  /* Input field */
   .input-field {
-    @apply w-full bg-game-surface text-text-primary text-2xl font-body
+    @apply w-full text-pq-text text-2xl font-body
            px-6 py-4 rounded-xl outline-none transition-all duration-200;
-    border: 2px solid rgba(45, 45, 78, 0.8);
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
   }
   .input-field:focus {
-    border-color: rgba(181, 55, 242, 0.8);
-    box-shadow: 0 0 15px rgba(181, 55, 242, 0.2);
+    border-color: rgba(236, 72, 153, 0.8);
+    box-shadow: 0 0 15px rgba(236, 72, 153, 0.2);
   }
   .input-field::placeholder {
-    color: rgba(136, 136, 170, 0.5);
+    color: rgba(222, 190, 200, 0.4);
+  }
+
+  /* Room code individual character box */
+  .room-code-box {
+    @apply font-display font-black rounded-xl flex items-center justify-center aspect-square transition-all duration-200;
+    background: rgba(168, 85, 247, 0.08);
+    border: 3px solid rgba(168, 85, 247, 0.7);
+    box-shadow: 0 0 25px rgba(168, 85, 247, 0.4), 0 0 60px rgba(168, 85, 247, 0.15), inset 0 0 15px rgba(168, 85, 247, 0.08);
+    color: #ffffff;
+  }
+  .room-code-box:focus {
+    border-color: rgba(236, 72, 153, 0.9);
+    box-shadow: 0 0 30px rgba(236, 72, 153, 0.5), 0 0 60px rgba(236, 72, 153, 0.2);
+    outline: none;
   }
 }

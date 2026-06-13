@@ -78,52 +78,73 @@ export default function HostLobbyPage() {
 
   return (
     <TVLayout>
-      <div className="flex flex-col flex-1 p-8 gap-8">
+      <div className="flex flex-col flex-1 p-8 gap-6">
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }}>
-            <h1 className="font-display text-5xl neon-text-purple">PARTY QUIPS</h1>
-            <p className="text-neon-cyan font-body text-xl mt-1">
-              Game: <strong>{GAME_LABELS[game]}</strong>
+            <h1 className="font-display font-black text-4xl text-white">🎉 PARTY QUIPS</h1>
+            <p className="font-label text-pq-muted text-base mt-0.5">
+              Game:{' '}
+              <span className="text-pq-pink font-semibold">{GAME_LABELS[game]}</span>
             </p>
           </motion.div>
           <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}>
-            <p className="text-text-muted font-body text-right text-sm mb-1">
+            <div
+              className="px-4 py-2 rounded-full font-label text-sm font-semibold"
+              style={{
+                background: 'rgba(250, 204, 21, 0.15)',
+                border: '1px solid rgba(250, 204, 21, 0.4)',
+                color: '#facc15',
+              }}
+            >
               {nonHostPlayers.length}/8 players joined
-            </p>
+            </div>
           </motion.div>
         </div>
 
         {/* Main content */}
-        <div className="flex flex-1 gap-8 items-center">
+        <div className="flex flex-1 gap-8 items-start">
 
-          {/* Left: Room code + QR */}
+          {/* Left 60%: Room code + QR */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="flex flex-col items-center gap-8 flex-shrink-0"
+            className="flex flex-col items-center gap-8 flex-[3]"
           >
             <RoomCode code={code} size="large" />
-            <QRCodeDisplay url={joinUrl} size={160} />
+            <div className="glass-card p-4">
+              <QRCodeDisplay url={joinUrl} size={180} />
+            </div>
           </motion.div>
 
           {/* Divider */}
-          <div className="h-full w-px bg-game-border mx-4" />
+          <div className="self-stretch w-px opacity-20" style={{ background: 'rgba(255,255,255,0.3)' }} />
 
-          {/* Right: Players + start */}
+          {/* Right 40%: Players + start */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="flex flex-col flex-1 gap-6"
+            className="flex flex-col flex-[2] gap-6"
           >
-            <h2 className="font-display text-3xl text-text-primary">
-              Players <span className="text-neon-purple">({nonHostPlayers.length})</span>
+            <h2 className="font-display font-black text-3xl text-white">
+              Players{' '}
+              <span style={{ color: '#facc15' }}>({nonHostPlayers.length})</span>
             </h2>
-            <div className="flex-1 overflow-y-auto">
-              <PlayerList players={nonHostPlayers} />
-            </div>
+
+            {nonHostPlayers.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 py-8 text-center">
+                <span className="text-5xl">🎮🎮</span>
+                <p className="text-pq-muted font-label text-base">Waiting for players...</p>
+              </div>
+            ) : (
+              <div className="flex-1 overflow-y-auto">
+                <PlayerList players={nonHostPlayers} />
+              </div>
+            )}
+
             <StartButton
               onStart={handleStart}
               playerCount={nonHostPlayers.length}
