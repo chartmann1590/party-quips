@@ -9,7 +9,7 @@
         "players": {
           ".read": "auth != null",
           "$playerId": {
-            ".write": "auth != null && ($playerId === auth.uid || root.child('rooms').child($roomCode).child('meta/hostId').val() === auth.uid)"
+            ".write": "auth != null && ($playerId === auth.uid || root.child('rooms').child($roomCode).child('meta').child('hostId').val() === auth.uid)"
           }
         },
         "quiplash": {
@@ -17,14 +17,14 @@
           "rounds": {
             "$round": {
               "prompts": {
-                ".write": "root.child('rooms').child($roomCode).child('meta/hostId').val() === auth.uid",
+                ".write": "root.child('rooms').child($roomCode).child('meta').child('hostId').val() === auth.uid",
                 "$promptId": {
                   "answers": { "$playerId": { ".write": "auth != null && $playerId === auth.uid" } },
                   "submitted": { "$playerId": { ".write": "auth != null && $playerId === auth.uid" } }
                 }
               },
               "voting": {
-                ".write": "root.child('rooms').child($roomCode).child('meta/hostId').val() === auth.uid",
+                ".write": "root.child('rooms').child($roomCode).child('meta').child('hostId').val() === auth.uid",
                 "votes": { "$voterId": { ".write": "auth != null && $voterId === auth.uid" } }
               }
             }
@@ -35,14 +35,14 @@
           "rounds": {
             "$round": {
               "prompts": {
-                ".write": "root.child('rooms').child($roomCode).child('meta/hostId').val() === auth.uid",
+                ".write": "root.child('rooms').child($roomCode).child('meta').child('hostId').val() === auth.uid",
                 "$promptId": {
                   "playerEntries": { "$playerId": { ".write": "auth != null && $playerId === auth.uid" } },
                   "submitted": { "$playerId": { ".write": "auth != null && $playerId === auth.uid" } }
                 }
               },
               "voting": {
-                ".write": "root.child('rooms').child($roomCode).child('meta/hostId').val() === auth.uid",
+                ".write": "root.child('rooms').child($roomCode).child('meta').child('hostId').val() === auth.uid",
                 "votes": { "$voterId": { ".write": "auth != null && $voterId === auth.uid" } }
               }
             }
@@ -52,7 +52,7 @@
           ".read": "auth != null",
           "rounds": {
             "$round": {
-              ".write": "root.child('rooms').child($roomCode).child('meta/hostId').val() === auth.uid",
+              ".write": "root.child('rooms').child($roomCode).child('meta').child('hostId').val() === auth.uid",
               "answers": { "$playerId": { ".write": "auth != null && $playerId === auth.uid" } },
               "submitted": { "$playerId": { ".write": "auth != null && $playerId === auth.uid" } }
             }
@@ -60,7 +60,7 @@
         },
         "system": {
           ".read": "auth != null",
-          ".write": "root.child('rooms').child($roomCode).child('meta/hostId').val() === auth.uid"
+          ".write": "root.child('rooms').child($roomCode).child('meta').child('hostId').val() === auth.uid"
         }
       }
     }
