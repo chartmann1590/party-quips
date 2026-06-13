@@ -31,7 +31,7 @@ import { ROUNDS_TOTAL, RESULTS_TIME_SECONDS } from '../types/quiplash'
 
 export default function HostGamePage() {
   const navigate = useNavigate()
-  const { roomCode } = useGameStore()
+  const { roomCode, clearSession } = useGameStore()
 
   const { data: meta } = useRoomMeta(roomCode)
   const { playerList } = usePlayers(roomCode)
@@ -172,7 +172,10 @@ export default function HostGamePage() {
 
   // ── Navigate on done ───────────────────────────────────────────────────────
   useEffect(() => {
-    if (gameState === 'done') navigate('/')
+    if (gameState === 'done') {
+      clearSession()
+      navigate('/')
+    }
   }, [gameState])
 
   // ── Render helpers ─────────────────────────────────────────────────────────

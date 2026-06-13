@@ -30,29 +30,29 @@ export default function HostLobbyPage() {
   const game = (params.get('game') ?? 'quiplash') as GameType
   const { setPlayer, setRoomCode, roomCode } = useGameStore()
 
-  const [code, setCode] = useState<string | null>(roomCode)
-  const [initializing, setInitializing] = useState(!roomCode)
+  const [code, setCode] = useState<string | null>(null)
+  const [initializing, setInitializing] = useState(true)
 
   const { data: meta } = useRoomMeta(code)
   const { playerList } = usePlayers(code)
 
   useEffect(() => {
-    if (!initializing) return
-
     const setup = async () => {
       const user = await ensureAuthenticated()
       const newCode = await createUniqueRoomCode()
 
-      await initRoom(newCode, user.uid, 'Host', game)
-      await addPlayer(newCode, {
-        id: user.uid,
-        name: 'Host',
-        score: 0,
-        connected: true,
-        isHost: true,
-        avatarColor: AVATAR_COLORS[0],
-        joinedAt: Date.now(),
-      })
+      await Promise.all([
+        initRoom(newCode, user.uid, 'Host', game),
+        addPlayer(newCode, {
+          id: user.uid,
+          name: 'Host',
+          score: 0,
+          connected: true,
+          isHost: true,
+          avatarColor: AVATAR_COLORS[0],
+          joinedAt: Date.now(),
+        }),
+      ])
 
       registerPresence(newCode, user.uid, true)
       setPlayer(user.uid, 'Host')
