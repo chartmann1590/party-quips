@@ -12,6 +12,7 @@ function storePlayerId(uid: string) {
 }
 
 let currentUser: User | null = null
+let authPromise: Promise<User> | null = null
 
 async function setAuthenticatedUser(user: User): Promise<User> {
   await user.getIdToken()
@@ -31,8 +32,9 @@ export function getCurrentUserId(): string {
 
 export async function ensureAuthenticated(): Promise<User> {
   if (currentUser) return setAuthenticatedUser(currentUser)
+  if (authPromise) return authPromise
 
-  return new Promise((resolve, reject) => {
+  authPromise = new Promise((resolve, reject) => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       unsub()
       try {
@@ -44,9 +46,13 @@ export async function ensureAuthenticated(): Promise<User> {
         }
       } catch (err) {
         reject(err)
+      } finally {
+        authPromise = null
       }
     })
   })
+
+  return authPromise
 }
 
 // Subscribe to auth state changes
