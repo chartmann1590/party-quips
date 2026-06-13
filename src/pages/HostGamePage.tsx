@@ -17,6 +17,7 @@ import HostFibbageGame from './HostFibbageGame'
 import HostTriviaGame from './HostTriviaGame'
 import { useRoomMeta, usePlayers } from '../hooks/useRoom'
 import { useQuiplashRound, useSystemData } from '../hooks/useGameState'
+import { useTvNarration } from '../hooks/useTvNarration'
 import { useGameStore } from '../store/gameStore'
 import {
   startQuiplashGame,
@@ -213,7 +214,6 @@ export default function HostGamePage() {
 
     if (resultsTimer.current) clearTimeout(resultsTimer.current)
     resultsTimer.current = setTimeout(async () => {
-      if (transitioning.current) return
       transitioning.current = true
 
       const currentPromptId = roundData.voting?.currentPromptId
@@ -244,6 +244,47 @@ export default function HostGamePage() {
   // ── Render helpers ─────────────────────────────────────────────────────────
   const nonHostPlayers = playerList.filter(p => !p.isHost)
   const getPlayer = (id: string) => nonHostPlayers.find(p => p.id === id)
+  const currentPromptId = roundData?.voting?.currentPromptId
+  const currentPrompt = currentPromptId ? roundData?.prompts?.[currentPromptId] : undefined
+  const currentAnswerA = currentPrompt ? currentPrompt.answers?.[currentPrompt.playerA] ?? '' : ''
+  const currentAnswerB = currentPrompt ? currentPrompt.answers?.[currentPrompt.playerB] ?? '' : ''
+  const currentVotes = roundData?.voting?.votes ?? {}
+  const currentVotesForA = currentPrompt
+    ? Object.values(currentVotes).filter(v => v === currentPrompt.playerA).length
+    : 0
+  const currentVotesForB = currentPrompt
+    ? Object.values(currentVotes).filter(v => v === currentPrompt.playerB).length
+    : 0
+
+  useTvNarration(
+    meta?.game === 'quiplash' && gameState === 'answering' ? `quiplash-answering-${round}` : null,
+    `Round ${round} of ${ROUNDS_TOTAL}. Players, check your phones. Write your funniest answers before the timer runs out.`
+  )
+
+  useTvNarration(
+    meta?.game === 'quiplash' && gameState === 'voting' && currentPromptId && currentPrompt
+      ? `quiplash-voting-${round}-${currentPromptId}`
+      : null,
+    currentPrompt
+      ? `${currentPrompt.text}. Option A. ${currentAnswerA || 'No answer submitted.'}. Option B. ${currentAnswerB || 'No answer submitted.'}. Vote now on your phones.`
+      : null
+  )
+
+  useTvNarration(
+    meta?.game === 'quiplash' && gameState === 'results' && currentPromptId && currentPrompt
+      ? `quiplash-results-${round}-${currentPromptId}`
+      : null,
+    currentPrompt
+      ? `Results. ${currentPrompt.text}. ${getPlayer(currentPrompt.playerA)?.name ?? 'Player A'} got ${currentVotesForA} votes. ${getPlayer(currentPrompt.playerB)?.name ?? 'Player B'} got ${currentVotesForB} votes.`
+      : null
+  )
+
+  useTvNarration(
+    meta?.game === 'quiplash' && gameState === 'scoreboard' ? 'quiplash-final-scoreboard' : null,
+    nonHostPlayers.length
+      ? `Final scores. ${[...nonHostPlayers].sort((a, b) => b.score - a.score).map((p, i) => `${i + 1}. ${p.name}, ${p.score} points`).join('. ')}.`
+      : null
+  )
 
   function renderAnsweringPhase() {
     if (!roundData || !system) return <LoadingSpinner size="lg" />

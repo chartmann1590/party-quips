@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react'
+import TvNarrationControls from '../shared/TvNarrationControls'
 
 interface TVLayoutProps {
   children: ReactNode
@@ -22,6 +23,7 @@ export default function TVLayout({ children, className = '' }: TVLayoutProps) {
       <div className="relative z-10 flex flex-col flex-1">
         {children}
       </div>
+      <TvNarrationControls />
     </div>
   )
 }

@@ -9,6 +9,7 @@ import ScoreBoard from '../components/shared/ScoreBoard'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useRoomMeta, usePlayers } from '../hooks/useRoom'
 import { useTriviaRound, useSystemData } from '../hooks/useGameState'
+import { useTvNarration } from '../hooks/useTvNarration'
 import { useGameStore } from '../store/gameStore'
 import { startTriviaRound, resolveTriviaRound, advanceTriviaOrFinish } from '../lib/gameEngine'
 import { calculateTriviaScores } from '../lib/scoring'
@@ -33,6 +34,12 @@ export default function HostTriviaGame() {
   const resultsTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const computerActionKeys = useRef(new Set<string>())
   const nonHostPlayers = playerList.filter(p => !p.isHost)
+  const narrationOptions = triviaRound?.question.displayOptions ?? triviaRound?.question.options ?? []
+  const narrationCorrectIndex = triviaRound ? narrationOptions.indexOf(triviaRound.question.options[0]) : -1
+  const narrationCorrectPlayers = Object.entries(triviaRound?.answers ?? {})
+    .filter(([, idx]) => idx === narrationCorrectIndex)
+    .map(([id]) => nonHostPlayers.find(p => p.id === id)?.name)
+    .filter(Boolean)
 
   // Timer tick
   const [, setTick] = useState(0)
@@ -96,11 +103,10 @@ export default function HostTriviaGame() {
 
   // Results → next round or scoreboard
   useEffect(() => {
-    if (gameState !== 'results' || !roomCode || transitioning.current) return
+    if (gameState !== 'results' || !roomCode) return
 
     if (resultsTimer.current) clearTimeout(resultsTimer.current)
     resultsTimer.current = setTimeout(async () => {
-      if (transitioning.current) return
       transitioning.current = true
       setScoreDeltas({})
       await advanceTriviaOrFinish(roomCode, round)
@@ -113,6 +119,27 @@ export default function HostTriviaGame() {
   useEffect(() => {
     if (gameState === 'done') navigate('/')
   }, [gameState])
+
+  useTvNarration(
+    gameState === 'answering' && triviaRound ? `trivia-question-${round}` : null,
+    triviaRound
+      ? `Deadly Trivia. Round ${round} of ${TOTAL_TRIVIA_ROUNDS}. ${triviaRound.question.category}. ${triviaRound.question.text}. ${narrationOptions.map((option, index) => `Option ${index + 1}. ${option}`).join('. ')}. Answer on your phones now.`
+      : null
+  )
+
+  useTvNarration(
+    gameState === 'results' && triviaRound ? `trivia-results-${round}` : null,
+    triviaRound && narrationCorrectIndex >= 0
+      ? `The correct answer was ${narrationOptions[narrationCorrectIndex]}. ${narrationCorrectPlayers.length ? `${narrationCorrectPlayers.join(', ')} got it right.` : 'Nobody got it right.'}`
+      : null
+  )
+
+  useTvNarration(
+    gameState === 'scoreboard' ? 'trivia-final-scoreboard' : null,
+    nonHostPlayers.length
+      ? `Final scores. ${[...nonHostPlayers].sort((a, b) => b.score - a.score).map((p, i) => `${i + 1}. ${p.name}, ${p.score} points`).join('. ')}.`
+      : null
+  )
 
   // ── Render ──────────────────────────────────────────────────────────────────
 

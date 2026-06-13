@@ -11,6 +11,7 @@ import PlayerList from '../components/lobby/PlayerList'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useRoomMeta, usePlayers } from '../hooks/useRoom'
 import { useFibbageRound, useSystemData } from '../hooks/useGameState'
+import { useTvNarration } from '../hooks/useTvNarration'
 import { useGameStore } from '../store/gameStore'
 import { startFibbageGame, beginFibbageVoting, resolveFibbageVoting } from '../lib/gameEngine'
 import { calculateFibbageScores } from '../lib/scoring'
@@ -36,6 +37,9 @@ export default function HostFibbageGame() {
   const resultsTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const computerActionKeys = useRef(new Set<string>())
   const nonHostPlayers = playerList.filter(p => !p.isHost)
+  const currentPromptId = fibbageRound?.voting?.currentPromptId
+  const currentPrompt = currentPromptId ? fibbageRound?.prompts?.[currentPromptId] : undefined
+  const currentVotes = fibbageRound?.voting?.votes ?? {}
 
   // Timer tick to re-evaluate effects
   const [, setTick] = useState(0)
@@ -159,14 +163,13 @@ export default function HostFibbageGame() {
 
   // Results → next prompt OR scoreboard
   useEffect(() => {
-    if (gameState !== 'results' || !fibbageRound || !roomCode || transitioning.current) return
+    if (gameState !== 'results' || !fibbageRound || !roomCode) return
 
     const currentRound: FibbageRound = fibbageRound
     const currentPromptIds = promptIds
 
     if (resultsTimer.current) clearTimeout(resultsTimer.current)
     resultsTimer.current = setTimeout(async () => {
-      if (transitioning.current) return
       transitioning.current = true
 
       const currentPromptId = currentRound.voting?.currentPromptId
@@ -188,6 +191,36 @@ export default function HostFibbageGame() {
   useEffect(() => {
     if (gameState === 'done') navigate('/')
   }, [gameState])
+
+  useTvNarration(
+    gameState === 'answering' ? `fibbage-answering-${round}` : null,
+    'Fib Finder. Players, check your phones and write a lie that sounds believable.'
+  )
+
+  useTvNarration(
+    gameState === 'voting' && currentPromptId && currentPrompt?.choices
+      ? `fibbage-voting-${round}-${currentPromptId}`
+      : null,
+    currentPrompt?.choices
+      ? `${currentPrompt.text}. Which one is the truth? ${currentPrompt.choices.map((choice, index) => `Option ${index + 1}. ${choice}`).join('. ')}. Vote now on your phones.`
+      : null
+  )
+
+  useTvNarration(
+    gameState === 'results' && currentPromptId && currentPrompt
+      ? `fibbage-results-${round}-${currentPromptId}`
+      : null,
+    currentPrompt
+      ? `The truth was ${currentPrompt.realAnswer}. ${Object.keys(currentVotes).length} votes were cast. Scores are updated.`
+      : null
+  )
+
+  useTvNarration(
+    gameState === 'scoreboard' ? 'fibbage-final-scoreboard' : null,
+    nonHostPlayers.length
+      ? `Final scores. ${[...nonHostPlayers].sort((a, b) => b.score - a.score).map((p, i) => `${i + 1}. ${p.name}, ${p.score} points`).join('. ')}.`
+      : null
+  )
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
