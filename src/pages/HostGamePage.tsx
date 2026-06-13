@@ -73,8 +73,9 @@ export default function HostGamePage() {
     }
   }, [roundData])
 
-  // Tick for timer updates
-  const [, setTick] = useState(0)
+  // Tick for timer updates — also drives transition effects so they re-check
+  // timer expiry every 500 ms even when no Firebase data changes (e.g. zero voters).
+  const [tick, setTick] = useState(0)
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 500)
     return () => clearInterval(id)
@@ -102,7 +103,7 @@ export default function HostGamePage() {
         .then(() => { transitioning.current = false })
         .catch(console.error)
     }
-  }, [gameState, roundData, system, promptIds])
+  }, [gameState, roundData, system, promptIds, tick])
 
   // ── Voting → Results transition ────────────────────────────────────────────
   useEffect(() => {
@@ -137,7 +138,7 @@ export default function HostGamePage() {
         .then(() => { transitioning.current = false })
         .catch(console.error)
     }
-  }, [gameState, roundData, system])
+  }, [gameState, roundData, system, tick])
 
   // ── Results → next prompt or next round ────────────────────────────────────
   useEffect(() => {
