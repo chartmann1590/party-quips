@@ -25,6 +25,8 @@ import {
   advanceToNextQuiplashPrompt,
   startNextRoundOrFinish,
 } from '../lib/gameEngine'
+import { generateAutoQuip } from '../lib/autoQuip'
+import { submitAutoQuip } from '../firebase/database'
 import { calculateQuiplashScores } from '../lib/scoring'
 import { setRoomState } from '../firebase/database'
 import { ROUNDS_TOTAL, RESULTS_TIME_SECONDS } from '../types/quiplash'
@@ -103,9 +105,33 @@ export default function HostGamePage() {
 
     if ((allSubmitted || timerExpired) && promptIds.length > 0) {
       transitioning.current = true
-      beginQuiplashVoting(roomCode, round, promptIds)
-        .then(() => { transitioning.current = false })
-        .catch(console.error)
+      ;(async () => {
+        // Generate auto-quips for players who didn't answer before timer expired
+        if (timerExpired && !allSubmitted) {
+          const missing: { promptId: string; playerId: string; promptText: string }[] = []
+          for (const [promptId, prompt] of Object.entries(roundData.prompts ?? {})) {
+            for (const pid of [prompt.playerA, prompt.playerB]) {
+              if (!prompt.submitted?.[pid]) {
+                missing.push({ promptId, playerId: pid, promptText: prompt.text })
+              }
+            }
+          }
+          if (missing.length > 0) {
+            await Promise.all(
+              missing.map(({ promptId, playerId, promptText }) =>
+                generateAutoQuip(promptText).then(answer =>
+                  submitAutoQuip(roomCode!, round, promptId, playerId, answer)
+                )
+              )
+            )
+          }
+        }
+        await beginQuiplashVoting(roomCode!, round, promptIds)
+        transitioning.current = false
+      })().catch(err => {
+        transitioning.current = false
+        console.error(err)
+      })
     }
   }, [gameState, roundData, system, promptIds, tick])
 
@@ -254,6 +280,8 @@ export default function HostGamePage() {
           votesForB={votesForB}
           totalVoters={totalVoters}
           revealed={false}
+          autoQuippedA={!!prompt.autoQuipped?.[prompt.playerA]}
+          autoQuippedB={!!prompt.autoQuipped?.[prompt.playerB]}
         />
       </div>
     )
@@ -289,6 +317,8 @@ export default function HostGamePage() {
           deltaB={result.playerBDelta}
           quiplash={result.quiplash}
           allPlayers={nonHostPlayers}
+          autoQuippedA={!!prompt.autoQuipped?.[prompt.playerA]}
+          autoQuippedB={!!prompt.autoQuipped?.[prompt.playerB]}
         />
         <div className="mt-auto">
           <ScoreBoard players={nonHostPlayers} deltaMap={scoreDeltas} compact />

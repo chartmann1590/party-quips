@@ -5,6 +5,7 @@ export interface QuiplashPrompt {
   playerB: string    // playerId
   answers: Record<string, string>    // playerId -> answer text
   submitted: Record<string, boolean> // playerId -> submitted?
+  autoQuipped?: Record<string, boolean> // playerId -> AI-generated?
 }
 
 export interface QuiplashVoting {

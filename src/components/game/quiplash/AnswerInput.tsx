@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { generateAutoQuip } from '../../../lib/autoQuip'
 
 interface AnswerInputProps {
   promptText: string
@@ -11,12 +12,28 @@ interface AnswerInputProps {
 export default function AnswerInput({ promptText, onSubmit, disabled = false, submitted = false }: AnswerInputProps) {
   const [answer, setAnswer] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [aiLoading, setAiLoading] = useState(false)
 
   async function handleSubmit() {
     if (submitting || submitted) return
     setSubmitting(true)
     await onSubmit(answer.trim())
     setSubmitting(false)
+  }
+
+  async function handleAutoQuip() {
+    if (aiLoading || submitting || submitted) return
+    setAiLoading(true)
+    try {
+      const quip = await generateAutoQuip(promptText)
+      setAnswer(quip)
+      setAiLoading(false)
+      setSubmitting(true)
+      await onSubmit(quip.trim())
+      setSubmitting(false)
+    } catch {
+      setAiLoading(false)
+    }
   }
 
   if (submitted) {
@@ -51,7 +68,7 @@ export default function AnswerInput({ promptText, onSubmit, disabled = false, su
           value={answer}
           onChange={e => setAnswer(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) handleSubmit() }}
-          disabled={disabled || submitting}
+          disabled={disabled || submitting || aiLoading}
           autoFocus
         />
         <p className="text-text-muted font-body text-xs mt-1 text-right">{answer.length}/200</p>
@@ -61,11 +78,27 @@ export default function AnswerInput({ promptText, onSubmit, disabled = false, su
         whileTap={{ scale: 0.95 }}
         className="btn-primary text-center w-full"
         onClick={handleSubmit}
-        disabled={disabled || submitting || !answer.trim()}
+        disabled={disabled || submitting || aiLoading || !answer.trim()}
         style={{ opacity: answer.trim() ? 1 : 0.5 }}
       >
         {submitting ? '⏳ Submitting...' : '✅ Submit Answer'}
       </motion.button>
+
+      <motion.button
+        whileTap={{ scale: 0.95 }}
+        onClick={handleAutoQuip}
+        disabled={disabled || submitting || aiLoading || submitted}
+        className="w-full py-3 px-4 rounded-2xl font-display font-black text-base transition-all"
+        style={{
+          background: aiLoading ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.15)',
+          border: '2px solid rgba(99,102,241,0.5)',
+          color: aiLoading ? 'rgba(165,180,252,0.7)' : '#a5b4fc',
+          opacity: aiLoading ? 0.8 : 1,
+        }}
+      >
+        {aiLoading ? '🤖 Generating...' : '🤖 Auto-Quip'}
+      </motion.button>
+
       <p className="text-text-muted font-body text-xs text-center">
         Leave blank to submit an empty answer (bold move)
       </p>

@@ -14,11 +14,14 @@ interface QuiplashResultsProps {
   deltaB: number
   quiplash: boolean
   allPlayers: Player[]
+  autoQuippedA?: boolean
+  autoQuippedB?: boolean
 }
 
 export default function QuiplashResults({
   promptText, answerA, answerB, playerA, playerB,
-  votesForA, votesForB, deltaA, deltaB, quiplash, allPlayers
+  votesForA, votesForB, deltaA, deltaB, quiplash, allPlayers,
+  autoQuippedA = false, autoQuippedB = false,
 }: QuiplashResultsProps) {
   const getPlayer = (id: string) => allPlayers.find(p => p.id === id)
 
@@ -48,9 +51,9 @@ export default function QuiplashResults({
       {/* Results */}
       <div className="flex flex-col md:flex-row gap-4 flex-1">
         {[
-          { player: playerA, answer: answerA, delta: deltaA, votes: votesForA, color: '#b537f2', label: 'A' },
-          { player: playerB, answer: answerB, delta: deltaB, votes: votesForB, color: '#00f5ff', label: 'B' },
-        ].map(({ player, answer, delta, votes, color, label }) => (
+          { player: playerA, answer: answerA, delta: deltaA, votes: votesForA, color: '#b537f2', label: 'A', autoQuipped: autoQuippedA },
+          { player: playerB, answer: answerB, delta: deltaB, votes: votesForB, color: '#00f5ff', label: 'B', autoQuipped: autoQuippedB },
+        ].map(({ player, answer, delta, votes, color, label, autoQuipped }) => (
           <motion.div
             key={label}
             initial={{ opacity: 0, y: 20 }}
@@ -81,6 +84,11 @@ export default function QuiplashResults({
               </div>
             )}
             <p className="font-body text-xl text-text-primary italic">"{answer || 'nothing'}"</p>
+            {autoQuipped && (
+              <span className="text-xs font-body px-2 py-1 rounded-full self-start" style={{ background: 'rgba(99,102,241,0.2)', color: '#a5b4fc' }}>
+                🤖 Auto-Quip
+              </span>
+            )}
 
             {/* Voters */}
             {votes.length > 0 && (

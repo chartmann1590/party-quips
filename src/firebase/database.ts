@@ -124,6 +124,16 @@ export async function submitQuiplashAnswer(
   await set(quiplashSubmittedRef(code, round, promptId, playerId), true)
 }
 
+export async function submitAutoQuip(
+  code: string, round: number, promptId: string, playerId: string, answer: string
+): Promise<void> {
+  await update(ref(db, `rooms/${code}/quiplash/rounds/${round}/prompts/${promptId}`), {
+    [`answers/${playerId}`]: answer,
+    [`submitted/${playerId}`]: true,
+    [`autoQuipped/${playerId}`]: true,
+  })
+}
+
 export async function startQuiplashVoting(
   code: string, round: number, promptId: string
 ): Promise<void> {

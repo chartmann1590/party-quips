@@ -11,11 +11,14 @@ interface VotingPairProps {
   votesForB: number
   totalVoters: number
   revealed?: boolean
+  autoQuippedA?: boolean
+  autoQuippedB?: boolean
 }
 
 export default function VotingPair({
   promptText, answerA, answerB, playerA, playerB,
-  votesForA, votesForB, totalVoters, revealed = false
+  votesForA, votesForB, totalVoters, revealed = false,
+  autoQuippedA = false, autoQuippedB = false,
 }: VotingPairProps) {
   return (
     <div className="flex flex-col gap-8 flex-1">
@@ -63,6 +66,11 @@ export default function VotingPair({
           <p className="font-body text-3xl md:text-4xl text-text-primary flex-1 flex items-center">
             {answerA || <em className="text-text-muted text-2xl">(no answer)</em>}
           </p>
+          {autoQuippedA && (
+            <span className="text-xs font-body px-2 py-1 rounded-full self-start" style={{ background: 'rgba(99,102,241,0.2)', color: '#a5b4fc' }}>
+              🤖 Auto-Quip
+            </span>
+          )}
           {/* Vote bar */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-3 bg-game-border rounded-full overflow-hidden">
@@ -114,6 +122,11 @@ export default function VotingPair({
           <p className="font-body text-3xl md:text-4xl text-text-primary flex-1 flex items-center">
             {answerB || <em className="text-text-muted text-2xl">(no answer)</em>}
           </p>
+          {autoQuippedB && (
+            <span className="text-xs font-body px-2 py-1 rounded-full self-start" style={{ background: 'rgba(99,102,241,0.2)', color: '#a5b4fc' }}>
+              🤖 Auto-Quip
+            </span>
+          )}
           {/* Vote bar */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-3 bg-game-border rounded-full overflow-hidden">
