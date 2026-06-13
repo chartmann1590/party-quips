@@ -3,11 +3,6 @@ import { db } from './config'
 import { playerConnectedRef } from './database'
 
 export function registerPresence(roomCode: string, playerId: string, isHost: boolean) {
-  const connectedRef = playerConnectedRef(roomCode, playerId)
-
-  set(connectedRef, true)
-  fbOnDisconnect(connectedRef).set(false)
-
   if (isHost) {
     // Track host online status separately — do NOT touch room state on disconnect.
     // Setting state:'done' on disconnect was too aggressive: any brief network
@@ -17,7 +12,13 @@ export function registerPresence(roomCode: string, playerId: string, isHost: boo
     const hostOnlineRef = ref(db, `rooms/${roomCode}/meta/hostOnline`)
     set(hostOnlineRef, true)
     fbOnDisconnect(hostOnlineRef).set(false)
+    return
   }
+
+  const connectedRef = playerConnectedRef(roomCode, playerId)
+
+  set(connectedRef, true)
+  fbOnDisconnect(connectedRef).set(false)
 }
 
 export function unregisterPresence(roomCode: string, playerId: string) {
