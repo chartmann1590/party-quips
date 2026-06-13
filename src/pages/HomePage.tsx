@@ -214,15 +214,26 @@ export default function HomePage() {
         </div>
 
         {/* Footer */}
-        <motion.p
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="font-label text-center"
-          style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', letterSpacing: '0.05em' }}
+          className="flex items-center justify-between gap-4"
         >
-          2–8 players • Free • No download required • PWA on iPhone ✓
-        </motion.p>
+          <p
+            className="font-label text-center"
+            style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', letterSpacing: '0.05em' }}
+          >
+            2–8 players • Free • No download required • PWA on iPhone ✓
+          </p>
+          <button
+            onClick={() => navigate('/feedback')}
+            className="font-label text-xs flex-none transition-opacity hover:opacity-80"
+            style={{ color: 'rgba(255,255,255,0.35)', letterSpacing: '0.03em' }}
+          >
+            🐛 Report a Problem
+          </button>
+        </motion.div>
       </div>
     </TVLayout>
   )
