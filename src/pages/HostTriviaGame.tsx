@@ -12,7 +12,8 @@ import { useTriviaRound, useSystemData } from '../hooks/useGameState'
 import { useGameStore } from '../store/gameStore'
 import { startTriviaRound, resolveTriviaRound, advanceTriviaOrFinish } from '../lib/gameEngine'
 import { calculateTriviaScores } from '../lib/scoring'
-import { setRoomState } from '../firebase/database'
+import { setRoomState, submitTriviaAnswer } from '../firebase/database'
+import { getComputerPlayers, pickComputerTriviaAnswer } from '../lib/computerPlayer'
 import { TOTAL_TRIVIA_ROUNDS } from '../types/trivia'
 
 const RESULTS_DISPLAY_MS = 4500
@@ -30,6 +31,7 @@ export default function HostTriviaGame() {
   const [scoreDeltas, setScoreDeltas] = useState<Record<string, number>>({})
   const transitioning = useRef(false)
   const resultsTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const computerActionKeys = useRef(new Set<string>())
   const nonHostPlayers = playerList.filter(p => !p.isHost)
 
   // Timer tick
@@ -49,6 +51,23 @@ export default function HostTriviaGame() {
       .then(() => { transitioning.current = false })
       .catch(console.error)
   }, [gameState, roomCode])
+
+  // Computer players answer trivia from the host browser.
+  useEffect(() => {
+    if (gameState !== 'answering' || !triviaRound || !roomCode) return
+
+    const displayOptions = triviaRound.question.displayOptions ?? triviaRound.question.options
+    for (const computer of getComputerPlayers(nonHostPlayers)) {
+      if (triviaRound.submitted?.[computer.id]) continue
+
+      const key = `trivia-answer:${round}:${computer.id}`
+      if (computerActionKeys.current.has(key)) continue
+      computerActionKeys.current.add(key)
+
+      submitTriviaAnswer(roomCode, round, computer.id, pickComputerTriviaAnswer(displayOptions.length))
+        .catch(console.error)
+    }
+  }, [gameState, triviaRound, roomCode, round, nonHostPlayers.length])
 
   // Answering → Results: all submitted OR timer expired
   useEffect(() => {

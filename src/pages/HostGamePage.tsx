@@ -26,9 +26,10 @@ import {
   startNextRoundOrFinish,
 } from '../lib/gameEngine'
 import { generateAutoQuip } from '../lib/autoQuip'
-import { submitAutoQuip } from '../firebase/database'
+import { submitAutoQuip, submitQuiplashVote } from '../firebase/database'
 import { calculateQuiplashScores } from '../lib/scoring'
 import { setRoomState } from '../firebase/database'
+import { getComputerPlayers, pickComputerQuiplashVote } from '../lib/computerPlayer'
 import { ROUNDS_TOTAL, RESULTS_TIME_SECONDS } from '../types/quiplash'
 
 export default function HostGamePage() {
@@ -51,6 +52,7 @@ export default function HostGamePage() {
   // Guard against double-firing transitions
   const transitioning = useRef(false)
   const resultsTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const computerActionKeys = useRef(new Set<string>())
 
   // Kick off the game when this page loads (Quiplash only for now)
   useEffect(() => {
@@ -77,6 +79,29 @@ export default function HostGamePage() {
       setPromptIds(Object.keys(roundData.prompts))
     }
   }, [roundData])
+
+  // Computer players answer their assigned prompts from the host browser.
+  useEffect(() => {
+    if (gameState !== 'answering' || !roundData || !roomCode) return
+
+    const computerPlayers = getComputerPlayers(playerList)
+    if (computerPlayers.length === 0) return
+
+    for (const [promptId, prompt] of Object.entries(roundData.prompts ?? {})) {
+      for (const computer of computerPlayers) {
+        if (prompt.playerA !== computer.id && prompt.playerB !== computer.id) continue
+        if (prompt.submitted?.[computer.id]) continue
+
+        const key = `quiplash-answer:${round}:${promptId}:${computer.id}`
+        if (computerActionKeys.current.has(key)) continue
+        computerActionKeys.current.add(key)
+
+        generateAutoQuip(prompt.text)
+          .then(answer => submitAutoQuip(roomCode, round, promptId, computer.id, answer))
+          .catch(console.error)
+      }
+    }
+  }, [gameState, roundData, roomCode, round, playerList.length])
 
   // Tick for timer updates — also drives transition effects so they re-check
   // timer expiry every 500 ms even when no Firebase data changes (e.g. zero voters).
@@ -148,6 +173,17 @@ export default function HostGamePage() {
 
     const voters = nonHostPlayers.filter(p => p.id !== prompt.playerA && p.id !== prompt.playerB)
     const voteCount = Object.keys(roundData.voting.votes ?? {}).length
+
+    for (const computer of getComputerPlayers(voters)) {
+      if (roundData.voting.votes?.[computer.id]) continue
+
+      const key = `quiplash-vote:${round}:${currentPromptId}:${computer.id}`
+      if (computerActionKeys.current.has(key)) continue
+      computerActionKeys.current.add(key)
+
+      submitQuiplashVote(roomCode, round, computer.id, pickComputerQuiplashVote(prompt.playerA, prompt.playerB))
+        .catch(console.error)
+    }
 
     const elapsed = (Date.now() - system.timerStartedAt) / 1000
     const timerExpired = elapsed >= system.timerDuration

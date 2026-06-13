@@ -10,6 +10,7 @@ import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { ensureAuthenticated } from '../firebase/auth'
 import { addPlayer, setRoomState } from '../firebase/database'
 import { initRoom } from '../lib/gameEngine'
+import { addComputerPlayerForTwoHumans } from '../lib/computerPlayer'
 import { registerPresence } from '../firebase/presence'
 import { createUniqueRoomCode } from '../lib/roomCode'
 import { useGameStore } from '../store/gameStore'
@@ -66,6 +67,7 @@ export default function HostLobbyPage() {
 
   async function handleStart() {
     if (!code) return
+    await addComputerPlayerForTwoHumans(code, playerList)
     navigate('/host/game')
   }
 

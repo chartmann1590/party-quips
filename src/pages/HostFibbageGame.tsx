@@ -14,7 +14,8 @@ import { useFibbageRound, useSystemData } from '../hooks/useGameState'
 import { useGameStore } from '../store/gameStore'
 import { startFibbageGame, beginFibbageVoting, resolveFibbageVoting } from '../lib/gameEngine'
 import { calculateFibbageScores } from '../lib/scoring'
-import { setRoomState } from '../firebase/database'
+import { setRoomState, submitFibbageEntry, submitFibbageVote } from '../firebase/database'
+import { getComputerFibbageEntry, getComputerPlayers, pickComputerFibbageVote } from '../lib/computerPlayer'
 import type { FibbageRound } from '../types/fibbage'
 
 const RESULTS_DISPLAY_MS = 5000
@@ -33,6 +34,7 @@ export default function HostFibbageGame() {
   const [scoreDeltas, setScoreDeltas] = useState<Record<string, number>>({})
   const transitioning = useRef(false)
   const resultsTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const computerActionKeys = useRef(new Set<string>())
   const nonHostPlayers = playerList.filter(p => !p.isHost)
 
   // Timer tick to re-evaluate effects
@@ -62,6 +64,32 @@ export default function HostFibbageGame() {
       setPromptIds(Object.keys(fibbageRound.prompts))
     }
   }, [fibbageRound])
+
+  // Computer players submit fake answers from the host browser.
+  useEffect(() => {
+    if (gameState !== 'answering' || !fibbageRound || !roomCode) return
+
+    const computerPlayers = getComputerPlayers(nonHostPlayers)
+    if (computerPlayers.length === 0) return
+
+    for (const [promptId, prompt] of Object.entries(fibbageRound.prompts ?? {})) {
+      for (const computer of computerPlayers) {
+        if (prompt.submitted?.[computer.id]) continue
+
+        const key = `fibbage-answer:${round}:${promptId}:${computer.id}`
+        if (computerActionKeys.current.has(key)) continue
+        computerActionKeys.current.add(key)
+
+        submitFibbageEntry(
+          roomCode,
+          round,
+          promptId,
+          computer.id,
+          getComputerFibbageEntry(prompt.text, prompt.realAnswer)
+        ).catch(console.error)
+      }
+    }
+  }, [gameState, fibbageRound, roomCode, round, nonHostPlayers.length])
 
   // Answering → Voting: all submitted OR timer expired
   useEffect(() => {
@@ -94,11 +122,27 @@ export default function HostFibbageGame() {
     const timerExpired = elapsed >= system.timerDuration
     const allVoted = voteCount >= nonHostPlayers.length && nonHostPlayers.length > 0
 
+    const promptId = fibbageRound.voting.currentPromptId
+    const prompt = fibbageRound.prompts[promptId]
+
+    if (prompt?.choices) {
+      for (const computer of getComputerPlayers(nonHostPlayers)) {
+        if (fibbageRound.voting.votes?.[computer.id]) continue
+
+        const key = `fibbage-vote:${round}:${promptId}:${computer.id}`
+        if (computerActionKeys.current.has(key)) continue
+
+        const choice = pickComputerFibbageVote(prompt.choices, prompt.playerEntries?.[computer.id])
+        if (!choice) continue
+
+        computerActionKeys.current.add(key)
+        submitFibbageVote(roomCode, round, computer.id, choice).catch(console.error)
+      }
+    }
+
     if (allVoted || timerExpired) {
       transitioning.current = true
 
-      const promptId = fibbageRound.voting.currentPromptId
-      const prompt = fibbageRound.prompts[promptId]
       const votes = fibbageRound.voting.votes ?? {}
       const fakesAuthored: Record<string, string> = {}
       for (const [pid, ans] of Object.entries(prompt?.playerEntries ?? {})) {

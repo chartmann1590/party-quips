@@ -14,6 +14,7 @@ export interface Player {
   score: number
   connected: boolean
   isHost: boolean
+  isComputer?: boolean
   avatarColor: string
   joinedAt: number
   alive?: boolean       // for trivia: whether player is still alive
