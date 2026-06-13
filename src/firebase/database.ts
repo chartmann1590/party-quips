@@ -72,7 +72,19 @@ export async function setRoomState(code: string, state: GameState): Promise<void
 }
 
 export async function addPlayer(code: string, player: Player): Promise<void> {
-  await set(playerRef(code, player.id), player)
+  let lastError: unknown
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await set(playerRef(code, player.id), player)
+      return
+    } catch (err) {
+      lastError = err
+      await new Promise(resolve => setTimeout(resolve, 200 * (attempt + 1)))
+    }
+  }
+
+  throw lastError
 }
 
 export async function updatePlayerScore(code: string, playerId: string, scoreDelta: number): Promise<void> {

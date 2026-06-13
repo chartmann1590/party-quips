@@ -13,6 +13,13 @@ function storePlayerId(uid: string) {
 
 let currentUser: User | null = null
 
+async function setAuthenticatedUser(user: User): Promise<User> {
+  await user.getIdToken()
+  currentUser = user
+  storePlayerId(user.uid)
+  return user
+}
+
 export function getCurrentUser(): User | null {
   return currentUser
 }
@@ -23,24 +30,20 @@ export function getCurrentUserId(): string {
 }
 
 export async function ensureAuthenticated(): Promise<User> {
-  if (currentUser) return currentUser
+  if (currentUser) return setAuthenticatedUser(currentUser)
 
   return new Promise((resolve, reject) => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       unsub()
-      if (user) {
-        currentUser = user
-        storePlayerId(user.uid)
-        resolve(user)
-      } else {
-        try {
+      try {
+        if (user) {
+          resolve(await setAuthenticatedUser(user))
+        } else {
           const cred = await signInAnonymously(auth)
-          currentUser = cred.user
-          storePlayerId(cred.user.uid)
-          resolve(cred.user)
-        } catch (err) {
-          reject(err)
+          resolve(await setAuthenticatedUser(cred.user))
         }
+      } catch (err) {
+        reject(err)
       }
     })
   })
