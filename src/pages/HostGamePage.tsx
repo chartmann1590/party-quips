@@ -167,7 +167,7 @@ export default function HostGamePage() {
     }, RESULTS_TIME_SECONDS * 1000)
 
     return () => { if (resultsTimer.current) clearTimeout(resultsTimer.current) }
-  }, [gameState, roundData])
+  }, [gameState, roundData, promptIds])
 
   // ── Navigate on done ───────────────────────────────────────────────────────
   useEffect(() => {
