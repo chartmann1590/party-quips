@@ -8,14 +8,14 @@ import PlayerList from '../components/lobby/PlayerList'
 import StartButton from '../components/lobby/StartButton'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { ensureAuthenticated } from '../firebase/auth'
-import { addPlayer, setRoomState } from '../firebase/database'
+import { setRoomState } from '../firebase/database'
 import { initRoom } from '../lib/gameEngine'
 import { addComputerPlayerForTwoHumans } from '../lib/computerPlayer'
 import { registerPresence } from '../firebase/presence'
 import { createUniqueRoomCode } from '../lib/roomCode'
 import { useGameStore } from '../store/gameStore'
 import { usePlayers, useRoomMeta } from '../hooks/useRoom'
-import { AVATAR_COLORS, GAME_LABELS, type GameType } from '../types/room'
+import { GAME_LABELS, type GameType } from '../types/room'
 
 const BASE_URL = `${window.location.origin}${import.meta.env.BASE_URL}`
 
@@ -43,15 +43,6 @@ export default function HostLobbyPage() {
       const newCode = await createUniqueRoomCode()
 
       await initRoom(newCode, user.uid, 'Host', game)
-      await addPlayer(newCode, {
-        id: user.uid,
-        name: 'Host',
-        score: 0,
-        connected: true,
-        isHost: true,
-        avatarColor: AVATAR_COLORS[0],
-        joinedAt: Date.now(),
-      })
 
       registerPresence(newCode, user.uid, true)
       setPlayer(user.uid, 'Host')
