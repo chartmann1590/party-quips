@@ -56,11 +56,11 @@ jobs:
 
   deploy-vercel:
     name: Deploy API to Vercel
-    if: ${{ secrets.VERCEL_TOKEN != '' }}
     runs-on: ubuntu-latest
     env:
       VERCEL_ORG_ID: team_nyX4hQDMvSwuQHmcsqOkVxkO
       VERCEL_PROJECT_ID: prj_BjbULN2XOmEdWPWqNQkk591PEaPB
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
       - uses: actions/checkout@v6
 
@@ -74,4 +74,9 @@ jobs:
       - run: npm install -g vercel@latest
 
       - name: Deploy to Vercel Production
-        run: vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "VERCEL_TOKEN not set — skipping Vercel deploy"
+            exit 0
+          fi
+          vercel deploy --prod --token "$VERCEL_TOKEN" --yes
