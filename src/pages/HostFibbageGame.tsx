@@ -202,7 +202,7 @@ export default function HostFibbageGame() {
 
   useTvNarration(
     gameState === 'answering' ? `fibbage-answering-${round}` : null,
-    'Fib Finder. Players, check your phones and write a lie that sounds believable.'
+    'Time to get deceptive! Check your phones and write a lie so convincing it will fool your best friends. Or your worst enemies. Make it believable. Go!'
   )
 
   useTvNarration(
@@ -210,7 +210,7 @@ export default function HostFibbageGame() {
       ? `fibbage-voting-${round}-${currentPromptId}`
       : null,
     currentPrompt?.choices
-      ? `${currentPrompt.text}. Which one is the truth? ${currentPrompt.choices.map((choice, index) => `Option ${index + 1}. ${choice}`).join('. ')}. Vote now on your phones.`
+      ? `${currentPrompt.text}. Which one is actually true? ${currentPrompt.choices.map((choice, index) => `Option ${index + 1}. ${choice}`).join('. ')}. Vote carefully. Or don't. I'm not your mom.`
       : null
   )
 
@@ -219,15 +219,18 @@ export default function HostFibbageGame() {
       ? `fibbage-results-${round}-${currentPromptId}`
       : null,
     currentPrompt
-      ? `The truth was ${currentPrompt.realAnswer}. ${Object.keys(currentVotes).length} votes were cast. Scores are updated.`
+      ? `The truth was... ${currentPrompt.realAnswer}! ${Object.keys(currentVotes).length} ${Object.keys(currentVotes).length === 1 ? 'person was' : 'people were'} bamboozled. Feels bad. Scores updated!`
       : null
   )
 
   useTvNarration(
     gameState === 'scoreboard' ? 'fibbage-final-scoreboard' : null,
-    nonHostPlayers.length
-      ? `Final scores. ${[...nonHostPlayers].sort((a, b) => b.score - a.score).map((p, i) => `${i + 1}. ${p.name}, ${p.score} points`).join('. ')}.`
-      : null
+    (() => {
+      if (!nonHostPlayers.length) return null
+      const sorted = [...nonHostPlayers].sort((a, b) => b.score - a.score)
+      const scores = sorted.map((p, i) => `${i + 1}. ${p.name}, ${p.score} points`).join('. ')
+      return `Fib Finder is done! Final scores: ${scores}. ${sorted[0].name} was the master of deception today. We're all a little scared of them now.`
+    })()
   )
 
   // ── Render ──────────────────────────────────────────────────────────────────

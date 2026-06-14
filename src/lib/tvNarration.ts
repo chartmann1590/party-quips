@@ -121,11 +121,21 @@ export function speakTvNarration(text: string, options: { force?: boolean } = {}
 
   synth.cancel()
 
-  const utterance = new SpeechSynthesisUtterance(script)
-  utterance.voice = pickVoice()
-  utterance.rate = settings.rate
-  utterance.pitch = settings.pitch
-  utterance.volume = settings.volume
+  // Chrome silently drops speak() called immediately after cancel() — 50ms gap fixes it
+  setTimeout(() => {
+    const utterance = new SpeechSynthesisUtterance(script)
+    utterance.voice = pickVoice()
+    utterance.rate = settings.rate
+    utterance.pitch = settings.pitch
+    utterance.volume = settings.volume
+    synth.speak(utterance)
+  }, 50)
+}
 
-  synth.speak(utterance)
+// Chrome/Edge return [] from getVoices() until voiceschanged fires — trigger early load
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  window.speechSynthesis.getVoices()
+  window.speechSynthesis.addEventListener('voiceschanged', () => {
+    window.speechSynthesis.getVoices()
+  })
 }

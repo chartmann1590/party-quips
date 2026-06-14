@@ -268,7 +268,7 @@ export default function HostGamePage() {
 
   useTvNarration(
     meta?.game === 'quiplash' && gameState === 'answering' ? `quiplash-answering-${round}` : null,
-    `Round ${round} of ${ROUNDS_TOTAL}. Players, check your phones. Write your funniest answers before the timer runs out.`
+    `Round ${round} of ${ROUNDS_TOTAL}, everyone! Time to put those big brains to work. Check your phones and write the funniest thing you can think of. No pressure. Well... some pressure.`
   )
 
   useTvNarration(
@@ -276,7 +276,7 @@ export default function HostGamePage() {
       ? `quiplash-voting-${round}-${currentPromptId}`
       : null,
     currentPrompt
-      ? `${currentPrompt.text}. Option A. ${currentAnswerA || 'No answer submitted.'}. Option B. ${currentAnswerB || 'No answer submitted.'}. Vote now on your phones.`
+      ? `${currentPrompt.text}. Option A — ${currentAnswerA || 'absolutely nothing, wow.'}. Option B — ${currentAnswerB || 'also nothing, incredible.'}. Vote for the one that made you snort. Or the one you wrote. We honestly can't tell.`
       : null
   )
 
@@ -285,15 +285,18 @@ export default function HostGamePage() {
       ? `quiplash-results-${round}-${currentPromptId}`
       : null,
     currentPrompt
-      ? `Results. ${currentPrompt.text}. ${getPlayer(currentPrompt.playerA)?.name ?? 'Player A'} got ${currentVotesForA} votes. ${getPlayer(currentPrompt.playerB)?.name ?? 'Player B'} got ${currentVotesForB} votes.`
+      ? `Results are in! ${currentPrompt.text}. ${getPlayer(currentPrompt.playerA)?.name ?? 'Player A'} grabbed ${currentVotesForA} ${currentVotesForA === 1 ? 'vote' : 'votes'}! ${getPlayer(currentPrompt.playerB)?.name ?? 'Player B'} snagged ${currentVotesForB} ${currentVotesForB === 1 ? 'vote' : 'votes'}!${currentVotesForA === currentVotesForB ? ' A tie! Absolute chaos. Nobody wins. Everybody loses.' : ''}`
       : null
   )
 
   useTvNarration(
     meta?.game === 'quiplash' && gameState === 'scoreboard' ? 'quiplash-final-scoreboard' : null,
-    nonHostPlayers.length
-      ? `Final scores. ${[...nonHostPlayers].sort((a, b) => b.score - a.score).map((p, i) => `${i + 1}. ${p.name}, ${p.score} points`).join('. ')}.`
-      : null
+    (() => {
+      if (!nonHostPlayers.length) return null
+      const sorted = [...nonHostPlayers].sort((a, b) => b.score - a.score)
+      const scores = sorted.map((p, i) => `${i + 1}. ${p.name}, ${p.score} points`).join('. ')
+      return `That's all, folks! Final scores: ${scores}. Our champion is ${sorted[0].name}! Everyone else... tried their best. And that counts for something. Probably.`
+    })()
   )
 
   function renderAnsweringPhase() {

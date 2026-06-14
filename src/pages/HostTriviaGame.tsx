@@ -131,22 +131,27 @@ export default function HostTriviaGame() {
   useTvNarration(
     gameState === 'answering' && triviaRound ? `trivia-question-${round}` : null,
     triviaRound
-      ? `Deadly Trivia. Round ${round} of ${TOTAL_TRIVIA_ROUNDS}. ${triviaRound.question.category}. ${triviaRound.question.text}. ${narrationOptions.map((option, index) => `Option ${index + 1}. ${option}`).join('. ')}. Answer on your phones now.`
+      ? `Deadly Trivia! Round ${round} of ${TOTAL_TRIVIA_ROUNDS}! Category: ${triviaRound.question.category}. Here's your question: ${triviaRound.question.text}. ${narrationOptions.map((option, index) => `Option ${index + 1}. ${option}`).join('. ')}. No Googling. I'm watching.`
       : null
   )
 
   useTvNarration(
     gameState === 'results' && triviaRound ? `trivia-results-${round}` : null,
     triviaRound && narrationCorrectIndex >= 0
-      ? `The correct answer was ${narrationOptions[narrationCorrectIndex]}. ${narrationCorrectPlayers.length ? `${narrationCorrectPlayers.join(', ')} got it right.` : 'Nobody got it right.'}`
+      ? narrationCorrectPlayers.length
+        ? `The correct answer was ${narrationOptions[narrationCorrectIndex]}! ${narrationCorrectPlayers.join(', ')} ${narrationCorrectPlayers.length === 1 ? 'knew it' : 'knew it'}! Big brains only.`
+        : `The correct answer was ${narrationOptions[narrationCorrectIndex]}. Nobody got it right. Truly deadly trivia. You should all feel bad.`
       : null
   )
 
   useTvNarration(
     gameState === 'scoreboard' ? 'trivia-final-scoreboard' : null,
-    nonHostPlayers.length
-      ? `Final scores. ${[...nonHostPlayers].sort((a, b) => b.score - a.score).map((p, i) => `${i + 1}. ${p.name}, ${p.score} points`).join('. ')}.`
-      : null
+    (() => {
+      if (!nonHostPlayers.length) return null
+      const sorted = [...nonHostPlayers].sort((a, b) => b.score - a.score)
+      const scores = sorted.map((p, i) => `${i + 1}. ${p.name}, ${p.score} points`).join('. ')
+      return `Trivia time's up! Final scores: ${scores}. ${sorted[0].name} is tonight's big brain champion! The rest of you need to read more books.`
+    })()
   )
 
   // ── Render ──────────────────────────────────────────────────────────────────
