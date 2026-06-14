@@ -1,4 +1,4 @@
-import { isKokoroLoaded, loadKokoro, speakWithKokoro, stopKokoro } from './kokoroTts'
+import { loadKokoro, speakWithKokoro, stopKokoro } from './kokoroTts'
 
 export interface TvNarrationSettings {
   enabled: boolean
@@ -138,13 +138,10 @@ export function speakTvNarration(text: string, options: { force?: boolean } = {}
   const script = normalize(text)
   if (!script) return
 
-  if (isKokoroLoaded()) {
-    // Kokoro is ready — use the natural neural voice (fire-and-forget)
-    speakWithKokoro(script)
-  } else {
-    // Kokoro still loading — use Web Speech API as immediate fallback
-    speakWebSpeech(script)
-  }
+  // Try cloud TTS first; fall back to Web Speech API if it fails or times out
+  speakWithKokoro(script).then(ok => {
+    if (!ok) speakWebSpeech(script)
+  }).catch(() => speakWebSpeech(script))
 }
 
 // Chrome/Edge return [] from getVoices() until voiceschanged fires — trigger early load
