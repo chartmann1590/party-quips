@@ -7,6 +7,9 @@ export default defineConfig({
   build: {
     cssMinify: false,
   },
+  optimizeDeps: {
+    exclude: ['kokoro-js', '@huggingface/transformers', 'onnxruntime-web'],
+  },
   plugins: [
     react(),
     VitePWA({
@@ -42,6 +45,7 @@ export default defineConfig({
         ]
       },
       workbox: {
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
         runtimeCaching: [
           {

@@ -1,3 +1,5 @@
+import { isKokoroLoaded, loadKokoro, speakWithKokoro, stopKokoro } from './kokoroTts'
+
 export interface TvNarrationSettings {
   enabled: boolean
   rate: number
@@ -97,6 +99,8 @@ export function getTvNarrationSettings(): TvNarrationSettings {
 
 export function setTvNarrationSettings(patch: Partial<TvNarrationSettings>) {
   saveSettings({ ...settings, ...patch })
+  // Kick off model download in the background when narrator is turned on
+  if (patch.enabled) loadKokoro()
 }
 
 export function subscribeToTvNarration(listener: (next: TvNarrationSettings) => void): () => void {
@@ -109,18 +113,14 @@ export function isTvNarrationSupported(): boolean {
 }
 
 export function stopTvNarration() {
+  stopKokoro()
   getSynth()?.cancel()
 }
 
-export function speakTvNarration(text: string, options: { force?: boolean } = {}) {
+function speakWebSpeech(script: string) {
   const synth = getSynth()
-  if (!synth || (!settings.enabled && !options.force)) return
-
-  const script = normalize(text)
-  if (!script) return
-
+  if (!synth) return
   synth.cancel()
-
   // Chrome silently drops speak() called immediately after cancel() — 50ms gap fixes it
   setTimeout(() => {
     const utterance = new SpeechSynthesisUtterance(script)
@@ -130,6 +130,21 @@ export function speakTvNarration(text: string, options: { force?: boolean } = {}
     utterance.volume = settings.volume
     synth.speak(utterance)
   }, 50)
+}
+
+export function speakTvNarration(text: string, options: { force?: boolean } = {}) {
+  if (!settings.enabled && !options.force) return
+
+  const script = normalize(text)
+  if (!script) return
+
+  if (isKokoroLoaded()) {
+    // Kokoro is ready — use the natural neural voice (fire-and-forget)
+    speakWithKokoro(script)
+  } else {
+    // Kokoro still loading — use Web Speech API as immediate fallback
+    speakWebSpeech(script)
+  }
 }
 
 // Chrome/Edge return [] from getVoices() until voiceschanged fires — trigger early load
