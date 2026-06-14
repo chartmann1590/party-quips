@@ -38,16 +38,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { packId } = (req.body ?? {}) as { packId?: string }
   if (!packId || !VALID_PACK_IDS.has(packId)) { res.status(400).json({ error: 'Invalid pack ID' }); return }
 
-  if (await docExists(`users/${uid}/purchases/${packId}`, idToken)) {
-    res.status(409).json({ error: 'already-owned' }); return
+  let alreadyOwned = false
+  try {
+    alreadyOwned = await docExists(`users/${uid}/purchases/${packId}`, idToken)
+  } catch (err: unknown) {
+    console.error('Firestore check error:', err instanceof Error ? err.message : String(err))
   }
+  if (alreadyOwned) { res.status(409).json({ error: 'already-owned' }); return }
 
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-02-24.acacia' })
-  const intent = await stripe.paymentIntents.create({
-    amount: 999,
-    currency: 'usd',
-    metadata: { packId, uid },
-    automatic_payment_methods: { enabled: true },
-  })
+  let intent
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-02-24.acacia' })
+    intent = await stripe.paymentIntents.create({
+      amount: 999,
+      currency: 'usd',
+      metadata: { packId, uid },
+      automatic_payment_methods: { enabled: true },
+    })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('Stripe error:', msg)
+    res.status(500).json({ error: 'Payment service error: ' + msg })
+    return
+  }
   res.json({ clientSecret: intent.client_secret })
 }
