@@ -1,7 +1,10 @@
 import type { KokoroTTS as KokoroTTSType } from 'kokoro-js'
 
-const MODEL_ID = 'onnx-community/Kokoro-82M-v1.0_ONNX'
-const VOICE = 'am_fenrir'  // American male — dramatic and fun for a game show host
+// Use the ungated public version — v1.0_ONNX is gated (401) for unauthenticated users
+const MODEL_ID = 'onnx-community/Kokoro-82M-ONNX'
+// 'quantized' maps to model_quantized.onnx (~92MB INT8) which is the smallest available
+const MODEL_DTYPE = 'quantized' as 'q8'
+const VOICE = 'am_michael'  // American male, available in this model
 
 type ProgressCallback = (pct: number) => void
 
@@ -31,33 +34,15 @@ function notifyProgress(pct: number) {
   progressListeners.forEach(cb => cb(pct))
 }
 
-// hf-mirror.com is a public HuggingFace mirror that doesn't require auth.
-// The kokoro-js bundle has remoteHost hardcoded inside its own chunk, so we can't
-// change it via env — instead we intercept at the fetch level.
-function patchFetch(): () => void {
-  const orig = window.fetch.bind(window)
-  window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = typeof input === 'string' ? input
-             : input instanceof Request ? input.url
-             : (input as URL).href
-    if (url.includes('huggingface.co')) {
-      return orig(url.replace('huggingface.co', 'hf-mirror.com'), init)
-    }
-    return orig(input, init)
-  }
-  return () => { window.fetch = orig }
-}
-
 export async function loadKokoro(): Promise<KokoroTTSType | null> {
   if (tts) return tts
   if (loadPromise) return loadPromise
 
   loadPromise = (async () => {
-    const unpatch = patchFetch()
     try {
       const { KokoroTTS } = await import('kokoro-js')
       const instance = await KokoroTTS.from_pretrained(MODEL_ID, {
-        dtype: 'q8',
+        dtype: MODEL_DTYPE,
         device: 'wasm',
         progress_callback: (info: any) => {
           if (info.status === 'progress' && info.total) {
@@ -73,8 +58,6 @@ export async function loadKokoro(): Promise<KokoroTTSType | null> {
       loadPromise = null
       loadProgress = 0
       return null
-    } finally {
-      unpatch()
     }
   })()
 
