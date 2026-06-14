@@ -8,7 +8,7 @@ export default defineConfig({
     cssMinify: false,
   },
   optimizeDeps: {
-    exclude: ['kokoro-js', '@huggingface/transformers', 'onnxruntime-web'],
+    exclude: ['@huggingface/transformers', 'onnxruntime-web'],
   },
   plugins: [
     react(),

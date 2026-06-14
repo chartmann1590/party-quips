@@ -1,15 +1,13 @@
-import type { KokoroTTS as KokoroTTSType } from 'kokoro-js'
-
-// Use the ungated public version — v1.0_ONNX is gated (401) for unauthenticated users
-const MODEL_ID = 'onnx-community/Kokoro-82M-ONNX'
-// q4f16 maps to model_q4f16.onnx (~154MB) which exists in this public model
-const MODEL_DTYPE = 'q4f16' as const
-const VOICE = 'am_michael'  // American male, available in this model
+// Uses @huggingface/transformers pipeline directly — no kokoro-js needed.
+// Xenova/mms-tts-eng quantized = 37MB (vs 154MB Kokoro) so it loads ~4x faster.
+// Model is cached by the browser Cache API after first download.
 
 type ProgressCallback = (pct: number) => void
 
-let tts: KokoroTTSType | null = null
-let loadPromise: Promise<KokoroTTSType | null> | null = null
+const MODEL_ID = 'Xenova/mms-tts-eng'
+
+let pipe: any = null
+let loadPromise: Promise<any | null> | null = null
 let loadProgress = 0
 const progressListeners = new Set<ProgressCallback>()
 
@@ -17,7 +15,7 @@ let currentSource: AudioBufferSourceNode | null = null
 let audioCtx: AudioContext | null = null
 
 export function isKokoroLoaded(): boolean {
-  return tts !== null
+  return pipe !== null
 }
 
 export function getKokoroProgress(): number {
@@ -34,27 +32,36 @@ function notifyProgress(pct: number) {
   progressListeners.forEach(cb => cb(pct))
 }
 
-export async function loadKokoro(): Promise<KokoroTTSType | null> {
-  if (tts) return tts
+function getAudioContext(sampleRate: number): AudioContext {
+  if (!audioCtx || audioCtx.state === 'closed') {
+    audioCtx = new AudioContext({ sampleRate })
+  }
+  return audioCtx
+}
+
+export async function loadKokoro(): Promise<any | null> {
+  if (pipe) return pipe
   if (loadPromise) return loadPromise
 
   loadPromise = (async () => {
     try {
-      const { KokoroTTS } = await import('kokoro-js')
-      const instance = await KokoroTTS.from_pretrained(MODEL_ID, {
-        dtype: MODEL_DTYPE,
+      const { pipeline } = await import('@huggingface/transformers')
+      const instance = await (pipeline as any)('text-to-speech', MODEL_ID, {
+        dtype: 'quantized',
         device: 'wasm',
         progress_callback: (info: any) => {
           if (info.status === 'progress' && info.total) {
             notifyProgress((info.loaded / info.total) * 0.98)
+          } else if (info.status === 'ready') {
+            notifyProgress(1)
           }
         },
       })
-      tts = instance
+      pipe = instance
       notifyProgress(1)
       return instance
     } catch (e) {
-      console.warn('[Kokoro] Model load failed, falling back to Web Speech API:', e)
+      console.warn('[TTS] Model load failed, falling back to Web Speech API:', e)
       loadPromise = null
       loadProgress = 0
       return null
@@ -64,38 +71,25 @@ export async function loadKokoro(): Promise<KokoroTTSType | null> {
   return loadPromise
 }
 
-function getAudioContext(sampleRate: number): AudioContext {
-  if (!audioCtx || audioCtx.state === 'closed') {
-    audioCtx = new AudioContext({ sampleRate })
-  }
-  return audioCtx
-}
-
 export async function speakWithKokoro(text: string): Promise<boolean> {
-  if (!tts) return false
-
+  if (!pipe) return false
   try {
     stopKokoro()
-
-    const output = await tts.generate(text, { voice: VOICE, speed: 1.05 })
-
+    const output = await pipe(text)
     const ctx = getAudioContext(output.sampling_rate)
     if (ctx.state === 'suspended') await ctx.resume()
-
     const samples = Float32Array.from(output.audio)
     const buffer = ctx.createBuffer(1, samples.length, output.sampling_rate)
     buffer.copyToChannel(samples, 0)
-
     const source = ctx.createBufferSource()
     source.buffer = buffer
     source.connect(ctx.destination)
     currentSource = source
     source.onended = () => { currentSource = null }
     source.start()
-
     return true
   } catch (e) {
-    console.warn('[Kokoro] Speech generation failed:', e)
+    console.warn('[TTS] Speech generation failed:', e)
     return false
   }
 }
