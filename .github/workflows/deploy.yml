@@ -56,12 +56,16 @@ jobs:
 
   deploy-vercel:
     name: Deploy API to Vercel
+    if: ${{ secrets.VERCEL_TOKEN != '' }}
     runs-on: ubuntu-latest
     env:
       VERCEL_ORG_ID: team_nyX4hQDMvSwuQHmcsqOkVxkO
-      VERCEL_PROJECT_ID: prj_Mt3VjwsLFvyRuxKyInlezN3DwXs2
+      VERCEL_PROJECT_ID: prj_BjbULN2XOmEdWPWqNQkk591PEaPB
     steps:
       - uses: actions/checkout@v6
+
+      - name: Configure git author for Vercel
+        run: git config user.email "charles.h.hartmann1@gmail.com"
 
       - uses: actions/setup-node@v6
         with:
