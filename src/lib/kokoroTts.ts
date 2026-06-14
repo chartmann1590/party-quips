@@ -2,8 +2,8 @@ import type { KokoroTTS as KokoroTTSType } from 'kokoro-js'
 
 // Use the ungated public version — v1.0_ONNX is gated (401) for unauthenticated users
 const MODEL_ID = 'onnx-community/Kokoro-82M-ONNX'
-// 'quantized' maps to model_quantized.onnx (~92MB INT8) which is the smallest available
-const MODEL_DTYPE = 'quantized' as 'q8'
+// q4f16 maps to model_q4f16.onnx (~154MB) which exists in this public model
+const MODEL_DTYPE = 'q4f16' as const
 const VOICE = 'am_michael'  // American male, available in this model
 
 type ProgressCallback = (pct: number) => void
