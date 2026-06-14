@@ -98,3 +98,7 @@ export function stopKokoro(): void {
   try { currentSource?.stop() } catch {}
   currentSource = null
 }
+
+// Pre-load immediately on page open so model is hot by game time.
+// 37MB cached by browser Cache API — subsequent sessions load from cache instantly.
+if (typeof window !== 'undefined') loadKokoro()

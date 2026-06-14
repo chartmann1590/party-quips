@@ -155,5 +155,3 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
   })
 }
 
-// If narrator was already enabled in a previous session, start loading Kokoro immediately
-if (settings.enabled) loadKokoro()
