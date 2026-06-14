@@ -38,6 +38,9 @@ export async function loadKokoro(): Promise<KokoroTTSType | null> {
   loadPromise = (async () => {
     try {
       const { KokoroTTS } = await import('kokoro-js')
+      // hf-mirror.com is a public HuggingFace mirror — no login required
+      const { env: hfEnv } = await import('@huggingface/transformers')
+      hfEnv.remoteHost = 'https://hf-mirror.com/'
       const instance = await KokoroTTS.from_pretrained(MODEL_ID, {
         dtype: 'q8',
         device: 'wasm',
