@@ -4,7 +4,11 @@ import { getAuth } from 'firebase/auth'
 import { getAnalytics, isSupported } from 'firebase/analytics'
 import { getPerformance } from 'firebase/performance'
 
-const measurementId = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+const rawMeasurementId = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+const measurementId =
+  rawMeasurementId && rawMeasurementId !== 'G-XXXXXXXXXX' && rawMeasurementId !== 'undefined'
+    ? rawMeasurementId
+    : undefined
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -20,7 +24,9 @@ export const db = getDatabase(app)
 export const auth = getAuth(app)
 
 // Analytics and Performance are optional (not available in all environments)
-export const analyticsPromise = isSupported().then(yes => yes ? getAnalytics(app) : null)
+export const analyticsPromise = measurementId
+  ? isSupported().then(yes => yes ? getAnalytics(app) : null)
+  : Promise.resolve(null)
 
 if (typeof window !== 'undefined' && import.meta.env.PROD) {
   getPerformance(app)
