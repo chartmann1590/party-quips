@@ -28,6 +28,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') { res.status(200).end(); return }
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return }
 
+  try {
+    return await handlePost(req, res)
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('Unhandled error:', msg)
+    res.status(500).json({ error: 'Server error: ' + msg })
+  }
+}
+
+async function handlePost(req: VercelRequest, res: VercelResponse) {
   const idToken = (req.headers.authorization ?? '').replace('Bearer ', '')
   if (!idToken) { res.status(401).json({ error: 'Must be signed in' }); return }
 
@@ -63,3 +73,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   res.json({ clientSecret: intent.client_secret })
 }
+
