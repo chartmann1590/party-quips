@@ -31,16 +31,31 @@ function notifyProgress(pct: number) {
   progressListeners.forEach(cb => cb(pct))
 }
 
+// hf-mirror.com is a public HuggingFace mirror that doesn't require auth.
+// The kokoro-js bundle has remoteHost hardcoded inside its own chunk, so we can't
+// change it via env — instead we intercept at the fetch level.
+function patchFetch(): () => void {
+  const orig = window.fetch.bind(window)
+  window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === 'string' ? input
+             : input instanceof Request ? input.url
+             : (input as URL).href
+    if (url.includes('huggingface.co')) {
+      return orig(url.replace('huggingface.co', 'hf-mirror.com'), init)
+    }
+    return orig(input, init)
+  }
+  return () => { window.fetch = orig }
+}
+
 export async function loadKokoro(): Promise<KokoroTTSType | null> {
   if (tts) return tts
   if (loadPromise) return loadPromise
 
   loadPromise = (async () => {
+    const unpatch = patchFetch()
     try {
       const { KokoroTTS } = await import('kokoro-js')
-      // hf-mirror.com is a public HuggingFace mirror — no login required
-      const { env: hfEnv } = await import('@huggingface/transformers')
-      hfEnv.remoteHost = 'https://hf-mirror.com/'
       const instance = await KokoroTTS.from_pretrained(MODEL_ID, {
         dtype: 'q8',
         device: 'wasm',
@@ -58,6 +73,8 @@ export async function loadKokoro(): Promise<KokoroTTSType | null> {
       loadPromise = null
       loadProgress = 0
       return null
+    } finally {
+      unpatch()
     }
   })()
 
