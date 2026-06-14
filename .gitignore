@@ -12,3 +12,5 @@ Thumbs.db
 Github Issue Tracker Prompt.txt
 *.png
 .playwright-mcp/
+
+.vercel

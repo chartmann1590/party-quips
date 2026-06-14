@@ -25,7 +25,9 @@ import {
   resolveQuiplashVoting,
   advanceToNextQuiplashPrompt,
   startNextRoundOrFinish,
+  resolveContentLibrary,
 } from '../lib/gameEngine'
+import type { ContentLibrary } from '../types/addOns'
 import { generateAutoQuip } from '../lib/autoQuip'
 import { submitAutoQuip, submitQuiplashVote } from '../firebase/database'
 import { calculateQuiplashScores } from '../lib/scoring'
@@ -45,6 +47,14 @@ export default function HostGamePage() {
 
   const { data: roundData } = useQuiplashRound(roomCode, round)
 
+  // Build content library from active add-ons (resolved once when meta arrives)
+  const contentLibrary = useRef<ContentLibrary | null>(null)
+  useEffect(() => {
+    if (meta?.activeAddOns !== undefined && contentLibrary.current === null) {
+      contentLibrary.current = resolveContentLibrary(meta.activeAddOns ?? [])
+    }
+  }, [meta?.activeAddOns])
+
   // Track prompt IDs for this round
   const [promptIds, setPromptIds] = useState<string[]>([])
   const usedPromptIds = useRef(new Set<string>())
@@ -63,7 +73,7 @@ export default function HostGamePage() {
     transitioning.current = true
 
     const nonHostPlayers = playerList.filter(p => !p.isHost)
-    startQuiplashGame(roomCode, nonHostPlayers, round, usedPromptIds.current)
+    startQuiplashGame(roomCode, nonHostPlayers, round, usedPromptIds.current, contentLibrary.current ?? undefined)
       .then(ids => {
         setPromptIds(ids)
         transitioning.current = false
@@ -221,7 +231,7 @@ export default function HostGamePage() {
 
       if (result === 'round_done') {
         const nonHostPlayers = playerList.filter(p => !p.isHost)
-        const outcome = await startNextRoundOrFinish(roomCode, round, nonHostPlayers, usedPromptIds.current)
+        const outcome = await startNextRoundOrFinish(roomCode, round, nonHostPlayers, usedPromptIds.current, contentLibrary.current ?? undefined)
         if (outcome === 'next_round') {
           setPromptIds([])
           setScoreDeltas({})

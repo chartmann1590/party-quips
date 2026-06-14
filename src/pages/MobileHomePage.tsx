@@ -316,14 +316,30 @@ export default function MobileHomePage() {
           </AnimatePresence>
         </motion.div>
 
-        {/* Feedback */}
-        <button
-          onClick={() => navigate('/feedback')}
-          className="font-label text-xs text-center pb-2 transition-opacity hover:opacity-70"
-          style={{ color: 'rgba(255,255,255,0.25)' }}
-        >
-          🐛 Report a Problem
-        </button>
+        {/* Footer links */}
+        <div className="flex justify-center gap-5 pb-2">
+          <button
+            onClick={() => navigate('/store')}
+            className="font-label text-xs transition-opacity hover:opacity-70"
+            style={{ color: 'rgba(255,255,255,0.35)' }}
+          >
+            🛍️ Store
+          </button>
+          <button
+            onClick={() => navigate('/account')}
+            className="font-label text-xs transition-opacity hover:opacity-70"
+            style={{ color: 'rgba(255,255,255,0.35)' }}
+          >
+            👤 Account
+          </button>
+          <button
+            onClick={() => navigate('/feedback')}
+            className="font-label text-xs transition-opacity hover:opacity-70"
+            style={{ color: 'rgba(255,255,255,0.25)' }}
+          >
+            🐛 Report
+          </button>
+        </div>
 
       </div>
     </PhoneLayout>

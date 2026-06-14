@@ -8,6 +8,8 @@ import PlayerLobbyPage from './pages/PlayerLobbyPage'
 import PlayerGamePage from './pages/PlayerGamePage'
 import NotFoundPage from './pages/NotFoundPage'
 import FeedbackPage from './pages/FeedbackPage'
+import StorePage from './pages/StorePage'
+import AccountPage from './pages/AccountPage'
 import PWAInstallBanner from './components/shared/PWAInstallBanner'
 import AndroidAppBanner from './components/shared/AndroidAppBanner'
 
@@ -31,6 +33,8 @@ export default function App() {
         <Route path="/play" element={<PlayerLobbyPage />} />
         <Route path="/play/game" element={<PlayerGamePage />} />
         <Route path="/feedback" element={<FeedbackPage />} />
+        <Route path="/store" element={<StorePage />} />
+        <Route path="/account" element={<AccountPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </HashRouter>

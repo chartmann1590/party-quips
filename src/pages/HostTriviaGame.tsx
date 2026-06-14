@@ -11,7 +11,8 @@ import { useRoomMeta, usePlayers } from '../hooks/useRoom'
 import { useTriviaRound, useSystemData } from '../hooks/useGameState'
 import { useTvNarration } from '../hooks/useTvNarration'
 import { useGameStore } from '../store/gameStore'
-import { startTriviaRound, resolveTriviaRound, advanceTriviaOrFinish } from '../lib/gameEngine'
+import { startTriviaRound, resolveTriviaRound, advanceTriviaOrFinish, resolveContentLibrary } from '../lib/gameEngine'
+import type { ContentLibrary } from '../types/addOns'
 import { calculateTriviaScores } from '../lib/scoring'
 import { setRoomState, submitTriviaAnswer } from '../firebase/database'
 import { getComputerPlayers, pickComputerTriviaAnswer } from '../lib/computerPlayer'
@@ -28,6 +29,13 @@ export default function HostTriviaGame() {
   const round = meta?.round ?? 1
   const gameState = meta?.state
   const { data: triviaRound } = useTriviaRound(roomCode, round)
+
+  const contentLibrary = useRef<ContentLibrary | null>(null)
+  useEffect(() => {
+    if (meta?.activeAddOns !== undefined && contentLibrary.current === null) {
+      contentLibrary.current = resolveContentLibrary(meta.activeAddOns ?? [])
+    }
+  }, [meta?.activeAddOns])
 
   const [scoreDeltas, setScoreDeltas] = useState<Record<string, number>>({})
   const transitioning = useRef(false)
@@ -54,7 +62,7 @@ export default function HostTriviaGame() {
     if (transitioning.current) return
     transitioning.current = true
 
-    startTriviaRound(roomCode, round)
+    startTriviaRound(roomCode, round, contentLibrary.current ?? undefined)
       .then(() => { transitioning.current = false })
       .catch(console.error)
   }, [gameState, roomCode])
@@ -109,7 +117,7 @@ export default function HostTriviaGame() {
     resultsTimer.current = setTimeout(async () => {
       transitioning.current = true
       setScoreDeltas({})
-      await advanceTriviaOrFinish(roomCode, round)
+      await advanceTriviaOrFinish(roomCode, round, contentLibrary.current ?? undefined)
       transitioning.current = false
     }, RESULTS_DISPLAY_MS)
 

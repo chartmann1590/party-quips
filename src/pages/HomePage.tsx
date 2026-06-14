@@ -226,13 +226,22 @@ export default function HomePage() {
           >
             2–8 players • Free • No download required • PWA on iPhone ✓
           </p>
-          <button
-            onClick={() => navigate('/feedback')}
-            className="font-label text-xs flex-none transition-opacity hover:opacity-80"
-            style={{ color: 'rgba(255,255,255,0.35)', letterSpacing: '0.03em' }}
-          >
-            🐛 Report a Problem
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/store')}
+              className="font-label text-xs transition-opacity hover:opacity-80"
+              style={{ color: 'rgba(255,255,255,0.45)', letterSpacing: '0.03em' }}
+            >
+              🛍️ Add-On Store
+            </button>
+            <button
+              onClick={() => navigate('/feedback')}
+              className="font-label text-xs transition-opacity hover:opacity-80"
+              style={{ color: 'rgba(255,255,255,0.35)', letterSpacing: '0.03em' }}
+            >
+              🐛 Report a Problem
+            </button>
+          </div>
         </motion.div>
       </div>
     </TVLayout>

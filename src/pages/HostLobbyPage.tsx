@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import TVLayout from '../components/layout/TVLayout'
@@ -6,16 +6,19 @@ import RoomCode from '../components/lobby/RoomCode'
 import QRCodeDisplay from '../components/lobby/QRCodeDisplay'
 import PlayerList from '../components/lobby/PlayerList'
 import StartButton from '../components/lobby/StartButton'
+import AddOnSelector from '../components/lobby/AddOnSelector'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { ensureAuthenticated } from '../firebase/auth'
-import { setRoomState } from '../firebase/database'
+import { setRoomState, roomMetaRef } from '../firebase/database'
 import { initRoom } from '../lib/gameEngine'
 import { addComputerPlayerForTwoHumans } from '../lib/computerPlayer'
 import { registerPresence } from '../firebase/presence'
 import { createUniqueRoomCode } from '../lib/roomCode'
 import { useGameStore } from '../store/gameStore'
+import { useAuthStore } from '../store/authStore'
 import { usePlayers, useRoomMeta } from '../hooks/useRoom'
 import { GAME_LABELS, type GameType } from '../types/room'
+import { update } from 'firebase/database'
 
 const BASE_URL = `${window.location.origin}${import.meta.env.BASE_URL}`
 
@@ -30,9 +33,12 @@ export default function HostLobbyPage() {
   const [params] = useSearchParams()
   const game = (params.get('game') ?? 'quiplash') as GameType
   const { setPlayer, setRoomCode, roomCode } = useGameStore()
+  const { isSignedIn, ownedPackIds } = useAuthStore()
 
   const [code, setCode] = useState<string | null>(null)
   const [initializing, setInitializing] = useState(true)
+  const [activeAddOns, setActiveAddOns] = useState<string[]>([])
+  const addOnsInitialized = useRef(false)
 
   const { data: meta } = useRoomMeta(code)
   const { playerList } = usePlayers(code)
@@ -42,7 +48,7 @@ export default function HostLobbyPage() {
       const user = await ensureAuthenticated()
       const newCode = await createUniqueRoomCode()
 
-      await initRoom(newCode, user.uid, 'Host', game)
+      await initRoom(newCode, user.uid, 'Host', game, ownedPackIds.length > 0 ? [...ownedPackIds] : undefined)
 
       registerPresence(newCode, user.uid, true)
       setPlayer(user.uid, 'Host')
@@ -53,6 +59,20 @@ export default function HostLobbyPage() {
 
     setup().catch(console.error)
   }, [])
+
+  // Auto-enable all owned packs when sign-in state is known
+  useEffect(() => {
+    if (!addOnsInitialized.current && ownedPackIds.length > 0) {
+      addOnsInitialized.current = true
+      setActiveAddOns([...ownedPackIds])
+    }
+  }, [ownedPackIds])
+
+  // Write activeAddOns to room meta when they change (after room is created)
+  useEffect(() => {
+    if (!code) return
+    update(roomMetaRef(code), { activeAddOns })
+  }, [activeAddOns, code])
 
   async function handleStart() {
     if (!code) return
@@ -157,6 +177,11 @@ export default function HostLobbyPage() {
                 <PlayerList players={nonHostPlayers} />
               </div>
             )}
+
+            <AddOnSelector
+              activeAddOns={activeAddOns}
+              onChange={setActiveAddOns}
+            />
 
             <StartButton
               onStart={handleStart}

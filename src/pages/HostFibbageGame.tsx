@@ -13,7 +13,8 @@ import { useRoomMeta, usePlayers } from '../hooks/useRoom'
 import { useFibbageRound, useSystemData } from '../hooks/useGameState'
 import { useTvNarration } from '../hooks/useTvNarration'
 import { useGameStore } from '../store/gameStore'
-import { startFibbageGame, beginFibbageVoting, resolveFibbageVoting } from '../lib/gameEngine'
+import { startFibbageGame, beginFibbageVoting, resolveFibbageVoting, resolveContentLibrary } from '../lib/gameEngine'
+import type { ContentLibrary } from '../types/addOns'
 import { calculateFibbageScores } from '../lib/scoring'
 import { setRoomState, submitFibbageEntry, submitFibbageVote } from '../firebase/database'
 import { getComputerFibbageEntry, getComputerPlayers, pickComputerFibbageVote } from '../lib/computerPlayer'
@@ -30,6 +31,13 @@ export default function HostFibbageGame() {
   const round = meta?.round ?? 1
   const gameState = meta?.state
   const { data: fibbageRound } = useFibbageRound(roomCode, round)
+
+  const contentLibrary = useRef<ContentLibrary | null>(null)
+  useEffect(() => {
+    if (meta?.activeAddOns !== undefined && contentLibrary.current === null) {
+      contentLibrary.current = resolveContentLibrary(meta.activeAddOns ?? [])
+    }
+  }, [meta?.activeAddOns])
 
   const [promptIds, setPromptIds] = useState<string[]>([])
   const [scoreDeltas, setScoreDeltas] = useState<Record<string, number>>({})
@@ -54,7 +62,7 @@ export default function HostFibbageGame() {
     if (transitioning.current) return
     transitioning.current = true
 
-    startFibbageGame(roomCode, round)
+    startFibbageGame(roomCode, round, contentLibrary.current ?? undefined)
       .then(ids => {
         setPromptIds(ids)
         transitioning.current = false

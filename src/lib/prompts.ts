@@ -687,6 +687,11 @@ export const TRIVIA_QUESTIONS: TriviaQuestion[] = [
   },
 ]
 
+// Separated finallash prompts for use by content library builder
+export const QUIPLASH_FINAL_LASH: QuiplashPromptDef[] = QUIPLASH_PROMPTS.filter(
+  p => p.category === 'finallash'
+)
+
 // ── Utility ───────────────────────────────────────────────────────────────────
 
 export function shuffleArray<T>(arr: T[]): T[] {
@@ -698,21 +703,34 @@ export function shuffleArray<T>(arr: T[]): T[] {
   return a
 }
 
-export function getRandomQuiplashPrompts(count: number, usedIds: Set<string> = new Set()): QuiplashPromptDef[] {
-  const available = QUIPLASH_PROMPTS.filter(p => !usedIds.has(p.id) && p.category !== 'finallash')
+export function getRandomQuiplashPrompts(
+  count: number,
+  usedIds: Set<string> = new Set(),
+  pool?: QuiplashPromptDef[]
+): QuiplashPromptDef[] {
+  const source = pool ?? QUIPLASH_PROMPTS
+  const available = source.filter(p => !usedIds.has(p.id) && p.category !== 'finallash')
   return shuffleArray(available).slice(0, count)
 }
 
-export function getRandomFinalLashPrompt(usedIds: Set<string> = new Set()): QuiplashPromptDef {
-  const finalLash = QUIPLASH_PROMPTS.filter(p => p.category === 'finallash' && !usedIds.has(p.id))
+export function getRandomFinalLashPrompt(
+  usedIds: Set<string> = new Set(),
+  pool?: QuiplashPromptDef[]
+): QuiplashPromptDef {
+  const source = pool ?? QUIPLASH_PROMPTS
+  const finalLash = source.filter(p => p.category === 'finallash' && !usedIds.has(p.id))
   const shuffled = shuffleArray(finalLash)
-  return shuffled[0] ?? QUIPLASH_PROMPTS.filter(p => p.category === 'finallash')[0]
+  return shuffled[0] ?? source.filter(p => p.category === 'finallash')[0]
 }
 
-export function getRandomFibbagePrompts(count: number): typeof FIBBAGE_PROMPTS {
-  return shuffleArray(FIBBAGE_PROMPTS).slice(0, count)
+export function getRandomFibbagePrompts<T extends { text: string; blank: string; realAnswer: string; category: string }>(
+  count: number,
+  pool?: T[]
+): T[] {
+  const source = (pool ?? FIBBAGE_PROMPTS) as T[]
+  return shuffleArray(source).slice(0, count)
 }
 
-export function getRandomTriviaQuestions(count: number): TriviaQuestion[] {
-  return shuffleArray(TRIVIA_QUESTIONS).slice(0, count)
+export function getRandomTriviaQuestions(count: number, pool?: TriviaQuestion[]): TriviaQuestion[] {
+  return shuffleArray(pool ?? TRIVIA_QUESTIONS).slice(0, count)
 }

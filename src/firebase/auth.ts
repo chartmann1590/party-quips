@@ -1,5 +1,7 @@
 import { signInAnonymously, onAuthStateChanged, type User } from 'firebase/auth'
 import { auth } from './config'
+import { getOwnedPackIds } from './purchases'
+import { useAuthStore } from '../store/authStore'
 
 const PLAYER_ID_KEY = 'party_quips_player_id'
 
@@ -55,8 +57,14 @@ export async function ensureAuthenticated(): Promise<User> {
   return authPromise
 }
 
-// Subscribe to auth state changes
-onAuthStateChanged(auth, (user) => {
+// Subscribe to auth state changes — also loads purchases for named accounts
+onAuthStateChanged(auth, async (user) => {
   currentUser = user
-  if (user) storePlayerId(user.uid)
+  if (user) {
+    storePlayerId(user.uid)
+    if (!user.isAnonymous) {
+      const packIds = await getOwnedPackIds(user.uid)
+      useAuthStore.getState().setSignedIn(user.uid, user.displayName, user.email, packIds)
+    }
+  }
 })

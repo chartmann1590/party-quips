@@ -29,6 +29,7 @@ export interface RoomMeta {
   state: GameState
   round: number
   maxPlayers: number
+  activeAddOns?: string[]
 }
 
 export interface SystemData {
