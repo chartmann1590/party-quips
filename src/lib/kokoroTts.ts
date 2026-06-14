@@ -47,7 +47,7 @@ export async function loadKokoro(): Promise<any | null> {
     try {
       const { pipeline } = await import('@huggingface/transformers')
       const instance = await (pipeline as any)('text-to-speech', MODEL_ID, {
-        dtype: 'quantized',
+        dtype: 'q8',
         device: 'wasm',
         progress_callback: (info: any) => {
           if (info.status === 'progress' && info.total) {
