@@ -1,7 +1,8 @@
 import type { QuiplashPromptDef } from '../lib/prompts'
 import type { TriviaQuestion } from './trivia'
+import type { SketchBluffPromptDef } from './sketchbluff'
 
-export type PackId = 'after-dark' | 'nerd-pack' | 'world-tour'
+export type PackId = 'after-dark' | 'nerd-pack' | 'world-tour' | 'sketch-bluff' | 'pop-culture' | 'sports-games'
 
 export interface FibbagePromptDef {
   text: string
@@ -22,6 +23,7 @@ export interface ContentPack {
   quiplashFinalLash: QuiplashPromptDef[]
   fibbagePrompts: FibbagePromptDef[]
   triviaQuestions: TriviaQuestion[]
+  sketchbluffPrompts?: SketchBluffPromptDef[]
 }
 
 export interface ContentLibrary {
@@ -29,6 +31,7 @@ export interface ContentLibrary {
   quiplashFinalLash: QuiplashPromptDef[]
   fibbagePrompts: FibbagePromptDef[]
   triviaQuestions: TriviaQuestion[]
+  sketchbluffPrompts: SketchBluffPromptDef[]
 }
 
 export interface PurchaseRecord {

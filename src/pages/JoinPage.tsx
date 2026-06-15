@@ -211,6 +211,33 @@ export default function JoinPage() {
           </motion.button>
         </motion.div>
 
+        {/* Games you can play */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <p className="font-label text-xs font-bold uppercase tracking-widest text-center mb-3" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            Games you can play
+          </p>
+          <div className="flex gap-2 justify-center flex-wrap">
+            {[
+              { label: 'Witty Quips', emoji: '😂', color: '#0891b2' },
+              { label: 'Fib Finder', emoji: '🤥', color: '#ea580c' },
+              { label: 'Deadly Trivia', emoji: '💀', color: '#dc2626' },
+              { label: 'Sketch Bluff', emoji: '🎨', color: '#7c3aed' },
+            ].map(g => (
+              <div
+                key={g.label}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-label text-xs font-bold"
+                style={{ background: `${g.color}22`, border: `1px solid ${g.color}55`, color: g.color }}
+              >
+                {g.emoji} {g.label}
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
         {/* Footer */}
         <div className="flex flex-col items-center gap-2">
           <p className="font-label text-xs tracking-wide" style={{ color: 'rgba(255,255,255,0.4)' }}>

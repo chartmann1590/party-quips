@@ -308,9 +308,10 @@ export async function startSketchBluffGame(
   code: string,
   players: Player[],
   round: number,
-  usedPromptIds: Set<string>
+  usedPromptIds: Set<string>,
+  library?: ContentLibrary
 ): Promise<string[]> {
-  const prompts = getRandomSketchBluffPrompts(players.length, usedPromptIds)
+  const prompts = getRandomSketchBluffPrompts(players.length, usedPromptIds, library?.sketchbluffPrompts)
   const drawings: Record<string, { promptId: string; promptText: string }> = {}
 
   players.forEach((player, index) => {

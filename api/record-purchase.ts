@@ -3,7 +3,7 @@ import Stripe from 'stripe'
 import { importX509, jwtVerify } from 'jose'
 
 const PROJECT_ID = 'party-quips-2026'
-const VALID_PACK_IDS = new Set(['after-dark', 'nerd-pack', 'world-tour'])
+const VALID_PACK_IDS = new Set(['after-dark', 'nerd-pack', 'world-tour', 'sketch-bluff', 'pop-culture', 'sports-games'])
 
 async function verifyToken(idToken: string): Promise<string> {
   const [b64] = idToken.split('.')

@@ -18,7 +18,9 @@ import {
   beginSketchBluffGuessing,
   beginSketchBluffVoting,
   resolveSketchBluffVoting,
+  resolveContentLibrary,
 } from '../lib/gameEngine'
+import type { ContentLibrary } from '../types/addOns'
 import {
   setRoomState,
   submitSketchBluffDrawing,
@@ -50,6 +52,7 @@ export default function HostSketchBluffGame() {
   const transitioning = useRef(false)
   const resultsTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const computerActionKeys = useRef(new Set<string>())
+  const contentLibrary = useRef<ContentLibrary | null>(null)
   const [, setTick] = useState(0)
 
   const nonHostPlayers = playerList.filter(p => !p.isHost)
@@ -58,6 +61,12 @@ export default function HostSketchBluffGame() {
   const currentVotes = sketchRound?.voting?.votes ?? {}
   const choices = sketchRound?.voting?.choices ?? []
   const getPlayer = (id: string) => nonHostPlayers.find(player => player.id === id)
+
+  useEffect(() => {
+    if (meta?.activeAddOns !== undefined && contentLibrary.current === null) {
+      contentLibrary.current = resolveContentLibrary(meta.activeAddOns ?? [])
+    }
+  }, [meta?.activeAddOns])
 
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 500)
@@ -69,7 +78,7 @@ export default function HostSketchBluffGame() {
     if (transitioning.current) return
     transitioning.current = true
 
-    startSketchBluffGame(roomCode, nonHostPlayers, round, usedPromptIds.current)
+    startSketchBluffGame(roomCode, nonHostPlayers, round, usedPromptIds.current, contentLibrary.current ?? undefined)
       .then(ids => {
         setDrawingOrder(ids)
         transitioning.current = false
