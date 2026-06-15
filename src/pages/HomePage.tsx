@@ -4,24 +4,27 @@ import { useNavigate } from 'react-router-dom'
 import TVLayout from '../components/layout/TVLayout'
 import { GAME_LABELS, GAME_DESCRIPTIONS, type GameType } from '../types/room'
 
-const GAMES: GameType[] = ['quiplash', 'fibbage', 'trivia']
+const GAMES: GameType[] = ['quiplash', 'fibbage', 'trivia', 'sketchbluff']
 
 const GAME_ICONS: Record<GameType, string> = {
   quiplash: '😂',
   fibbage: '🤥',
   trivia: '💀',
+  sketchbluff: '🎨',
 }
 
 const GAME_COLORS: Record<GameType, string> = {
   quiplash: '#0891b2',
   fibbage: '#ea580c',
   trivia: '#dc2626',
+  sketchbluff: '#0284c7',
 }
 
 const GAME_SHADOW_COLORS: Record<GameType, string> = {
   quiplash: '#0e7490',
   fibbage: '#c2410c',
   trivia: '#b91c1c',
+  sketchbluff: '#0369a1',
 }
 
 export default function HomePage() {

@@ -1,4 +1,5 @@
 import type { FibbagePrompt } from '../types/fibbage'
+import type { SketchBluffPromptDef } from '../types/sketchbluff'
 import type { TriviaQuestion } from '../types/trivia'
 
 export interface QuiplashPromptDef {
@@ -6,6 +7,41 @@ export interface QuiplashPromptDef {
   text: string
   category: string
 }
+
+// ── Sketch Bluff Prompts ─────────────────────────────────────────────────────
+
+export const SKETCHBLUFF_PROMPTS: SketchBluffPromptDef[] = [
+  { id: 'sb001', text: 'A toaster winning an argument', category: 'objects' },
+  { id: 'sb002', text: 'A haunted birthday cake', category: 'party' },
+  { id: 'sb003', text: 'A superhero with a useless power', category: 'superhero' },
+  { id: 'sb004', text: 'A vending machine having a bad day', category: 'objects' },
+  { id: 'sb005', text: 'A pirate at a job interview', category: 'characters' },
+  { id: 'sb006', text: 'The world\'s least helpful robot', category: 'tech' },
+  { id: 'sb007', text: 'A wizard stuck in traffic', category: 'fantasy' },
+  { id: 'sb008', text: 'A sandwich with a secret identity', category: 'food' },
+  { id: 'sb009', text: 'A dinosaur trying to text', category: 'animals' },
+  { id: 'sb010', text: 'A moon that is tired of being stared at', category: 'space' },
+  { id: 'sb011', text: 'A suspiciously fancy trash can', category: 'objects' },
+  { id: 'sb012', text: 'A ghost hosting a yard sale', category: 'spooky' },
+  { id: 'sb013', text: 'An angry cloud at the beach', category: 'weather' },
+  { id: 'sb014', text: 'A tiny dragon guarding a sandwich', category: 'fantasy' },
+  { id: 'sb015', text: 'A cactus trying to hug someone', category: 'plants' },
+  { id: 'sb016', text: 'A disco ball with stage fright', category: 'party' },
+  { id: 'sb017', text: 'A detective who only solves snack crimes', category: 'characters' },
+  { id: 'sb018', text: 'A snowman moving to Florida', category: 'weather' },
+  { id: 'sb019', text: 'An elevator going on strike', category: 'objects' },
+  { id: 'sb020', text: 'A laptop dreaming of the ocean', category: 'tech' },
+  { id: 'sb021', text: 'A royal pigeon demanding respect', category: 'animals' },
+  { id: 'sb022', text: 'A pizza slice running for mayor', category: 'food' },
+  { id: 'sb023', text: 'A chair that knows too much', category: 'objects' },
+  { id: 'sb024', text: 'An alien misunderstanding a handshake', category: 'space' },
+  { id: 'sb025', text: 'A vampire at the dentist', category: 'spooky' },
+  { id: 'sb026', text: 'A fridge full of dramatic leftovers', category: 'food' },
+  { id: 'sb027', text: 'A mountain taking a selfie', category: 'nature' },
+  { id: 'sb028', text: 'A trophy for the worst idea', category: 'objects' },
+  { id: 'sb029', text: 'A time traveler at a garage sale', category: 'sci-fi' },
+  { id: 'sb030', text: 'A sleepy volcano', category: 'nature' },
+]
 
 // ── Quiplash Prompts ──────────────────────────────────────────────────────────
 
@@ -733,4 +769,15 @@ export function getRandomFibbagePrompts<T extends { text: string; blank: string;
 
 export function getRandomTriviaQuestions(count: number, pool?: TriviaQuestion[]): TriviaQuestion[] {
   return shuffleArray(pool ?? TRIVIA_QUESTIONS).slice(0, count)
+}
+
+export function getRandomSketchBluffPrompts(
+  count: number,
+  usedIds: Set<string> = new Set(),
+  pool?: SketchBluffPromptDef[]
+): SketchBluffPromptDef[] {
+  const available = (pool ?? SKETCHBLUFF_PROMPTS).filter(p => !usedIds.has(p.id))
+  const selected = shuffleArray(available).slice(0, count)
+  if (selected.length >= count) return selected
+  return [...selected, ...shuffleArray(pool ?? SKETCHBLUFF_PROMPTS).slice(0, count - selected.length)]
 }

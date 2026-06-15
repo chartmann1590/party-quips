@@ -1,4 +1,4 @@
-export type GameType = 'quiplash' | 'fibbage' | 'trivia'
+export type GameType = 'quiplash' | 'fibbage' | 'trivia' | 'sketchbluff'
 
 export type GameState =
   | 'lobby'
@@ -58,10 +58,12 @@ export const GAME_LABELS: Record<GameType, string> = {
   quiplash: 'Witty Quips',
   fibbage: 'Fib Finder',
   trivia: 'Deadly Trivia',
+  sketchbluff: 'Sketch Bluff',
 }
 
 export const GAME_DESCRIPTIONS: Record<GameType, string> = {
   quiplash: 'Answer hilarious prompts and vote for the funniest response!',
   fibbage: 'Make up fake answers and fool your friends!',
   trivia: 'Answer trivia or face deadly consequences!',
+  sketchbluff: 'Draw secret prompts, write fake titles, and spot the real one!',
 }

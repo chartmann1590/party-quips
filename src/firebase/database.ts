@@ -7,6 +7,7 @@ import type { Player, RoomMeta, GameType, GameState } from '../types/room'
 import type { QuiplashPrompt } from '../types/quiplash'
 import type { FibbagePrompt } from '../types/fibbage'
 import type { TriviaQuestion } from '../types/trivia'
+import type { SketchBluffDrawing, SketchBluffVotingChoice } from '../types/sketchbluff'
 
 // ── Ref builders ─────────────────────────────────────────────────────────────
 
@@ -51,6 +52,17 @@ export const triviaAnswerRef = (code: string, round: number, playerId: string) =
   ref(db, `rooms/${code}/trivia/rounds/${round}/answers/${playerId}`)
 export const triviaSubmittedRef = (code: string, round: number, playerId: string) =>
   ref(db, `rooms/${code}/trivia/rounds/${round}/submitted/${playerId}`)
+
+// Sketch Bluff
+export const sketchBluffRoundRef = (code: string, round: number) => ref(db, `rooms/${code}/sketchbluff/rounds/${round}`)
+export const sketchBluffDrawingRef = (code: string, round: number, playerId: string) =>
+  ref(db, `rooms/${code}/sketchbluff/rounds/${round}/drawings/${playerId}`)
+export const sketchBluffGuessRef = (code: string, round: number, drawingPlayerId: string, guesserId: string) =>
+  ref(db, `rooms/${code}/sketchbluff/rounds/${round}/guesses/${drawingPlayerId}/${guesserId}`)
+export const sketchBluffVotingRef = (code: string, round: number) =>
+  ref(db, `rooms/${code}/sketchbluff/rounds/${round}/voting`)
+export const sketchBluffVoteRef = (code: string, round: number, voterId: string) =>
+  ref(db, `rooms/${code}/sketchbluff/rounds/${round}/voting/votes/${voterId}`)
 
 // ── Write operations ──────────────────────────────────────────────────────────
 
@@ -220,6 +232,74 @@ export async function submitTriviaAnswer(
 ): Promise<void> {
   await set(triviaAnswerRef(code, round, playerId), optionIndex)
   await set(triviaSubmittedRef(code, round, playerId), true)
+}
+
+export async function writeSketchBluffRound(
+  code: string,
+  round: number,
+  drawings: Record<string, Pick<SketchBluffDrawing, 'promptId' | 'promptText'>>
+): Promise<void> {
+  const data: Record<string, SketchBluffDrawing> = {}
+  for (const [playerId, drawing] of Object.entries(drawings)) {
+    data[playerId] = {
+      promptId: drawing.promptId,
+      promptText: drawing.promptText,
+      drawingUrl: '',
+      submitted: false,
+    }
+  }
+
+  await set(ref(db, `rooms/${code}/sketchbluff/rounds/${round}/drawings`), data)
+  await set(ref(db, `rooms/${code}/sketchbluff/rounds/${round}/guesses`), {})
+  await set(sketchBluffVotingRef(code, round), {
+    phase: 'waiting',
+    currentPlayerId: '',
+    choices: [],
+    votes: {},
+  })
+}
+
+export async function submitSketchBluffDrawing(
+  code: string, round: number, playerId: string, drawingUrl: string
+): Promise<void> {
+  await update(sketchBluffDrawingRef(code, round, playerId), {
+    drawingUrl,
+    submitted: true,
+  })
+}
+
+export async function submitSketchBluffGuess(
+  code: string, round: number, drawingPlayerId: string, guesserId: string, guess: string
+): Promise<void> {
+  await set(sketchBluffGuessRef(code, round, drawingPlayerId, guesserId), guess)
+}
+
+export async function startSketchBluffGuessing(
+  code: string, round: number, drawingPlayerId: string
+): Promise<void> {
+  await set(sketchBluffVotingRef(code, round), {
+    phase: 'guessing',
+    currentPlayerId: drawingPlayerId,
+    choices: [],
+    votes: {},
+  })
+}
+
+export async function startSketchBluffVoting(
+  code: string, round: number, drawingPlayerId: string, choices: SketchBluffVotingChoice[]
+): Promise<void> {
+  await set(sketchBluffVotingRef(code, round), {
+    phase: 'voting',
+    currentPlayerId: drawingPlayerId,
+    choices,
+    votes: {},
+  })
+}
+
+export async function submitSketchBluffVote(
+  code: string, round: number, voterId: string, choiceId: string
+): Promise<void> {
+  await set(sketchBluffVoteRef(code, round, voterId), choiceId)
 }
 
 export async function deleteRoom(code: string): Promise<void> {

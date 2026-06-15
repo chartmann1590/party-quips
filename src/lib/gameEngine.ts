@@ -14,6 +14,9 @@ import {
   writeFibbageRound,
   writeFibbageChoices,
   writeTriviaRound,
+  writeSketchBluffRound,
+  startSketchBluffGuessing,
+  startSketchBluffVoting,
 } from '../firebase/database'
 import type { Player, GameType } from '../types/room'
 import type { ContentLibrary } from '../types/addOns'
@@ -21,14 +24,16 @@ import { buildContentLibrary } from './contentPacks'
 import { ANSWER_TIME_SECONDS, VOTE_TIME_SECONDS, RESULTS_TIME_SECONDS, ROUNDS_TOTAL } from '../types/quiplash'
 import { FIBBAGE_ANSWER_TIME, FIBBAGE_VOTE_TIME } from '../types/fibbage'
 import { TRIVIA_ANSWER_TIME, TOTAL_TRIVIA_ROUNDS } from '../types/trivia'
+import { SKETCHBLUFF_DRAW_TIME, SKETCHBLUFF_GUESS_TIME, SKETCHBLUFF_VOTE_TIME, type SketchBluffRound, type SketchBluffVotingChoice } from '../types/sketchbluff'
 import {
   shuffleArray,
   getRandomQuiplashPrompts,
   getRandomFinalLashPrompt,
   getRandomFibbagePrompts,
   getRandomTriviaQuestions,
+  getRandomSketchBluffPrompts,
 } from './prompts'
-import { calculateQuiplashScores, calculateFibbageScores, calculateTriviaScores } from './scoring'
+import { calculateQuiplashScores, calculateFibbageScores, calculateTriviaScores, calculateSketchBluffScores } from './scoring'
 import type { QuiplashRound } from '../types/quiplash'
 import type { FibbageRound } from '../types/fibbage'
 
@@ -295,4 +300,103 @@ export async function advanceTriviaOrFinish(code: string, round: number, library
   await update(ref(db, `rooms/${code}/meta`), { round: round + 1 })
   await startTriviaRound(code, round + 1, library)
   return 'next_round'
+}
+
+// ── Sketch Bluff Engine ──────────────────────────────────────────────────────
+
+export async function startSketchBluffGame(
+  code: string,
+  players: Player[],
+  round: number,
+  usedPromptIds: Set<string>
+): Promise<string[]> {
+  const prompts = getRandomSketchBluffPrompts(players.length, usedPromptIds)
+  const drawings: Record<string, { promptId: string; promptText: string }> = {}
+
+  players.forEach((player, index) => {
+    const prompt = prompts[index]
+    if (!prompt) return
+    usedPromptIds.add(prompt.id)
+    drawings[player.id] = {
+      promptId: prompt.id,
+      promptText: prompt.text,
+    }
+  })
+
+  await writeSketchBluffRound(code, round, drawings)
+  await setTimer(code, SKETCHBLUFF_DRAW_TIME)
+  await setRoomState(code, 'answering')
+  return Object.keys(drawings)
+}
+
+export async function beginSketchBluffGuessing(
+  code: string,
+  round: number,
+  drawingPlayerId: string
+): Promise<void> {
+  await startSketchBluffGuessing(code, round, drawingPlayerId)
+  await setTimer(code, SKETCHBLUFF_GUESS_TIME)
+  await setRoomState(code, 'voting')
+}
+
+export async function beginSketchBluffVoting(
+  code: string,
+  round: number,
+  sketchData: SketchBluffRound,
+  drawingPlayerId: string
+): Promise<SketchBluffVotingChoice[]> {
+  const drawing = sketchData.drawings[drawingPlayerId]
+  if (!drawing) return []
+
+  const guesses = sketchData.guesses?.[drawingPlayerId] ?? {}
+  const fakeChoices: SketchBluffVotingChoice[] = Object.entries(guesses)
+    .filter(([, text]) => text.trim().toLowerCase() !== drawing.promptText.trim().toLowerCase())
+    .map(([authorId, text]) => ({
+      id: `fake-${authorId}`,
+      text,
+      isReal: false,
+      authorId,
+    }))
+
+  const choices = shuffleArray<SketchBluffVotingChoice>([
+    ...fakeChoices,
+    {
+      id: 'real',
+      text: drawing.promptText,
+      isReal: true,
+    },
+  ])
+
+  await startSketchBluffVoting(code, round, drawingPlayerId, choices)
+  await setTimer(code, SKETCHBLUFF_VOTE_TIME)
+  return choices
+}
+
+export async function resolveSketchBluffVoting(
+  code: string,
+  round: number,
+  sketchData: SketchBluffRound
+): Promise<Record<string, number>> {
+  const drawingPlayerId = sketchData.voting.currentPlayerId
+  const choices = sketchData.voting.choices ?? []
+  const realChoice = choices.find(choice => choice.isReal)
+  if (!drawingPlayerId || !realChoice) return {}
+
+  const fakeChoiceAuthors: Record<string, string> = {}
+  for (const choice of choices) {
+    if (!choice.isReal && choice.authorId) fakeChoiceAuthors[choice.id] = choice.authorId
+  }
+
+  const result = calculateSketchBluffScores(
+    sketchData.voting.votes ?? {},
+    realChoice.id,
+    fakeChoiceAuthors,
+    drawingPlayerId
+  )
+
+  if (Object.keys(result.deltas).length > 0) {
+    await updateMultipleScores(code, result.deltas)
+  }
+  await setRoomState(code, 'results')
+  return result.deltas
 }

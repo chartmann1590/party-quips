@@ -247,6 +247,7 @@ export default function MobileHomePage() {
             { label: 'Witty Quips', emoji: '😂', color: '#0891b2' },
             { label: 'Fib Finder', emoji: '🤥', color: '#ea580c' },
             { label: 'Deadly Trivia', emoji: '💀', color: '#dc2626' },
+            { label: 'Sketch Bluff', emoji: '🎨', color: '#0284c7' },
           ].map(g => (
             <div
               key={g.label}

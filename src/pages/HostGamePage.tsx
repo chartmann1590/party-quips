@@ -15,6 +15,7 @@ import PlayerList from '../components/lobby/PlayerList'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import HostFibbageGame from './HostFibbageGame'
 import HostTriviaGame from './HostTriviaGame'
+import HostSketchBluffGame from './HostSketchBluffGame'
 import { useRoomMeta, usePlayers } from '../hooks/useRoom'
 import { useQuiplashRound, useSystemData } from '../hooks/useGameState'
 import { useTvNarration } from '../hooks/useTvNarration'
@@ -450,6 +451,7 @@ export default function HostGamePage() {
   // Dispatch to game-specific coordinators
   if (meta?.game === 'fibbage') return <HostFibbageGame />
   if (meta?.game === 'trivia') return <HostTriviaGame />
+  if (meta?.game === 'sketchbluff') return <HostSketchBluffGame />
 
   if (!meta || gameState === 'lobby') {
     return (

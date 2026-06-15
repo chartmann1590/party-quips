@@ -58,6 +58,35 @@
             }
           }
         },
+        "sketchbluff": {
+          ".read": "auth != null",
+          "rounds": {
+            "$round": {
+              "drawings": {
+                ".write": "root.child('rooms').child($roomCode).child('meta').child('hostId').val() === auth.uid",
+                "$playerId": {
+                  ".write": "auth != null && $playerId === auth.uid"
+                }
+              },
+              "guesses": {
+                ".write": "root.child('rooms').child($roomCode).child('meta').child('hostId').val() === auth.uid",
+                "$drawingPlayerId": {
+                  "$guesserId": {
+                    ".write": "auth != null && $guesserId === auth.uid"
+                  }
+                }
+              },
+              "voting": {
+                ".write": "root.child('rooms').child($roomCode).child('meta').child('hostId').val() === auth.uid",
+                "votes": {
+                  "$voterId": {
+                    ".write": "auth != null && $voterId === auth.uid"
+                  }
+                }
+              }
+            }
+          }
+        },
         "system": {
           ".read": "auth != null",
           ".write": "root.child('rooms').child($roomCode).child('meta').child('hostId').val() === auth.uid"

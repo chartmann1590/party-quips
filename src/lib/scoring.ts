@@ -1,5 +1,6 @@
 import { VOTE_SCORE_PER_VOTER, QUIPLASH_BONUS, ROUND_MULTIPLIERS } from '../types/quiplash'
 import { FIBBAGE_FOOL_POINTS, FIBBAGE_TRUTH_POINTS } from '../types/fibbage'
+import { SKETCHBLUFF_ARTIST_BONUS, SKETCHBLUFF_FOOL_POINTS, SKETCHBLUFF_TRUTH_POINTS } from '../types/sketchbluff'
 import { TRIVIA_CORRECT_POINTS, TRIVIA_SPEED_BONUS } from '../types/trivia'
 
 // ── Quiplash ──────────────────────────────────────────────────────────────────
@@ -79,6 +80,42 @@ export function calculateFibbageScores(
   }
 
   return { deltas, fools }
+}
+
+// ── Sketch Bluff ─────────────────────────────────────────────────────────────
+
+export interface SketchBluffScoreResult {
+  deltas: Record<string, number>
+  fooled: Record<string, string[]>
+  correctVoters: string[]
+}
+
+export function calculateSketchBluffScores(
+  votes: Record<string, string>,
+  realChoiceId: string,
+  fakeChoiceAuthors: Record<string, string>,
+  artistId: string
+): SketchBluffScoreResult {
+  const deltas: Record<string, number> = {}
+  const fooled: Record<string, string[]> = {}
+  const correctVoters: string[] = []
+
+  for (const [voterId, choiceId] of Object.entries(votes)) {
+    if (choiceId === realChoiceId) {
+      correctVoters.push(voterId)
+      deltas[voterId] = (deltas[voterId] ?? 0) + SKETCHBLUFF_TRUTH_POINTS
+      deltas[artistId] = (deltas[artistId] ?? 0) + SKETCHBLUFF_ARTIST_BONUS
+      continue
+    }
+
+    const authorId = fakeChoiceAuthors[choiceId]
+    if (authorId && authorId !== voterId) {
+      deltas[authorId] = (deltas[authorId] ?? 0) + SKETCHBLUFF_FOOL_POINTS
+      fooled[authorId] = [...(fooled[authorId] ?? []), voterId]
+    }
+  }
+
+  return { deltas, fooled, correctVoters }
 }
 
 // ── Trivia ────────────────────────────────────────────────────────────────────

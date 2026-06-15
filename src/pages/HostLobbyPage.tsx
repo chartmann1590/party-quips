@@ -26,6 +26,7 @@ const GAME_ICONS: Record<GameType, string> = {
   quiplash: '😂',
   fibbage: '🤥',
   trivia: '💀',
+  sketchbluff: '🎨',
 }
 
 export default function HostLobbyPage() {

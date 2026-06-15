@@ -8,11 +8,14 @@ import VoteButton from '../components/game/quiplash/VoteButton'
 import FibInput from '../components/game/fibbage/FibInput'
 import AnswerPicker from '../components/game/fibbage/AnswerPicker'
 import TriviaAnswerButtons from '../components/game/trivia/TriviaAnswerButtons'
+import SketchCanvas from '../components/game/sketchbluff/SketchCanvas'
+import SketchGuessInput from '../components/game/sketchbluff/SketchGuessInput'
+import SketchChoicePicker from '../components/game/sketchbluff/SketchChoicePicker'
 import ScoreBoard from '../components/shared/ScoreBoard'
 import CountdownTimer from '../components/shared/CountdownTimer'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useRoomMeta, usePlayers } from '../hooks/useRoom'
-import { useQuiplashRound, useSystemData, useFibbageRound, useTriviaRound } from '../hooks/useGameState'
+import { useQuiplashRound, useSystemData, useFibbageRound, useTriviaRound, useSketchBluffRound } from '../hooks/useGameState'
 import { useGameStore } from '../store/gameStore'
 import {
   submitQuiplashAnswer,
@@ -20,6 +23,9 @@ import {
   submitFibbageEntry,
   submitFibbageVote,
   submitTriviaAnswer,
+  submitSketchBluffDrawing,
+  submitSketchBluffGuess,
+  submitSketchBluffVote,
 } from '../firebase/database'
 
 export default function PlayerGamePage() {
@@ -37,16 +43,19 @@ export default function PlayerGamePage() {
   const { data: quiplashRound } = useQuiplashRound(game === 'quiplash' ? roomCode : null, round)
   const { data: fibbageRound } = useFibbageRound(game === 'fibbage' ? roomCode : null, round)
   const { data: triviaRound } = useTriviaRound(game === 'trivia' ? roomCode : null, round)
+  const { data: sketchRound } = useSketchBluffRound(game === 'sketchbluff' ? roomCode : null, round)
 
   const [myVote, setMyVote] = useState<string | null>(null)
   const [fibChoice, setFibChoice] = useState<string | null>(null)
   const [triviaChoice, setTriviaChoice] = useState<number | null>(null)
+  const [sketchChoice, setSketchChoice] = useState<string | null>(null)
 
   useEffect(() => {
     setMyVote(null)
     setFibChoice(null)
     setTriviaChoice(null)
-  }, [round, gameState])
+    setSketchChoice(null)
+  }, [round, gameState, sketchRound?.voting?.currentPlayerId, sketchRound?.voting?.phase])
 
   useEffect(() => {
     if (gameState === 'done' || meta?.state === 'done') navigate('/')
@@ -93,6 +102,22 @@ export default function PlayerGamePage() {
     if (!roomCode || !playerId || triviaChoice !== null) return
     setTriviaChoice(index)
     await submitTriviaAnswer(roomCode, round, playerId, index)
+  }
+
+  async function handleSketchDrawing(drawingUrl: string) {
+    if (!roomCode || !playerId) return
+    await submitSketchBluffDrawing(roomCode, round, playerId, drawingUrl)
+  }
+
+  async function handleSketchGuess(drawingPlayerId: string, guess: string) {
+    if (!roomCode || !playerId) return
+    await submitSketchBluffGuess(roomCode, round, drawingPlayerId, playerId, guess)
+  }
+
+  async function handleSketchVote(choiceId: string) {
+    if (!roomCode || !playerId) return
+    setSketchChoice(choiceId)
+    await submitSketchBluffVote(roomCode, round, playerId, choiceId)
   }
 
   // ── Render helpers ─────────────────────────────────────────────────────────
@@ -282,8 +307,104 @@ export default function PlayerGamePage() {
     )
   }
 
+  function renderSketchDrawing() {
+    if (!sketchRound) return <LoadingSpinner size="md" label="Loading prompt..." />
+    const drawing = sketchRound.drawings?.[playerId ?? '']
+    if (!drawing) return <LoadingSpinner size="md" label="Finding your prompt..." />
+
+    return (
+      <div className="flex flex-col gap-4">
+        {system && (
+          <div className="flex justify-between items-center">
+            <p className="font-display text-2xl" style={{ color: '#38bdf8' }}>Sketch Bluff</p>
+            <CountdownTimer totalSeconds={system.timerDuration} startedAt={system.timerStartedAt} size={60} />
+          </div>
+        )}
+        <SketchCanvas
+          promptText={drawing.promptText}
+          submitted={!!drawing.submitted}
+          onSubmit={handleSketchDrawing}
+        />
+      </div>
+    )
+  }
+
+  function renderSketchVoting() {
+    if (!sketchRound?.voting?.currentPlayerId) return <LoadingSpinner size="md" label="Loading drawing..." />
+    const drawingPlayerId = sketchRound.voting.currentPlayerId
+    const drawing = sketchRound.drawings?.[drawingPlayerId]
+    if (!drawing?.drawingUrl) return <LoadingSpinner size="md" label="Loading drawing..." />
+
+    const artist = playerList.find(player => player.id === drawingPlayerId)
+    const isArtist = drawingPlayerId === playerId
+
+    if (sketchRound.voting.phase === 'guessing') {
+      if (isArtist) {
+        return (
+          <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+            <div className="text-6xl">🎨</div>
+            <p className="font-display text-2xl text-center" style={{ color: '#38bdf8' }}>Your drawing is up!</p>
+            <p className="text-text-muted font-body text-center">Watch the TV while everyone writes fake titles.</p>
+            {system && <CountdownTimer totalSeconds={system.timerDuration} startedAt={system.timerStartedAt} size={60} />}
+          </div>
+        )
+      }
+
+      const submittedGuess = sketchRound.guesses?.[drawingPlayerId]?.[playerId ?? '']
+      return (
+        <div className="flex flex-col gap-4">
+          {system && (
+            <div className="flex justify-end">
+              <CountdownTimer totalSeconds={system.timerDuration} startedAt={system.timerStartedAt} size={60} />
+            </div>
+          )}
+          <SketchGuessInput
+            drawingUrl={drawing.drawingUrl}
+            artistName={artist?.name ?? 'Player'}
+            submitted={!!submittedGuess}
+            submittedGuess={submittedGuess}
+            onSubmit={(guess) => handleSketchGuess(drawingPlayerId, guess)}
+          />
+        </div>
+      )
+    }
+
+    if (sketchRound.voting.phase === 'voting') {
+      if (isArtist) {
+        return (
+          <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+            <div className="text-6xl">👀</div>
+            <p className="font-display text-2xl text-center" style={{ color: '#38bdf8' }}>They are guessing!</p>
+            <p className="text-text-muted font-body text-center">Watch the TV to see who finds the real prompt.</p>
+            {system && <CountdownTimer totalSeconds={system.timerDuration} startedAt={system.timerStartedAt} size={60} />}
+          </div>
+        )
+      }
+
+      return (
+        <div className="flex flex-col gap-4">
+          {system && (
+            <div className="flex justify-between items-center">
+              <p className="font-display text-xl" style={{ color: '#38bdf8' }}>Pick the real title</p>
+              <CountdownTimer totalSeconds={system.timerDuration} startedAt={system.timerStartedAt} size={60} />
+            </div>
+          )}
+          <SketchChoicePicker
+            drawingUrl={drawing.drawingUrl}
+            choices={sketchRound.voting.choices ?? []}
+            playerId={playerId ?? ''}
+            selectedChoice={sketchChoice ?? sketchRound.voting.votes?.[playerId ?? '']}
+            onVote={handleSketchVote}
+          />
+        </div>
+      )
+    }
+
+    return <LoadingSpinner size="md" label="Waiting..." />
+  }
+
   function renderResults() {
-    const emoji = game === 'trivia' ? '💀' : '📊'
+    const emoji = game === 'trivia' ? '💀' : game === 'sketchbluff' ? '🎨' : '📊'
     const label = game === 'trivia' ? 'Watch the TV for the answer!' : 'Watch the big screen!'
     return (
       <div className="flex flex-col items-center gap-4 flex-1 justify-center">
@@ -328,13 +449,16 @@ export default function PlayerGamePage() {
         <div className="flex flex-col flex-1">
           <PhaseTransition phase={`${gameState}-${round}-${
             game === 'quiplash' ? quiplashRound?.voting?.currentPromptId ?? '' :
-            game === 'fibbage' ? fibbageRound?.voting?.currentPromptId ?? '' : ''
+            game === 'fibbage' ? fibbageRound?.voting?.currentPromptId ?? '' :
+            game === 'sketchbluff' ? `${sketchRound?.voting?.phase ?? ''}-${sketchRound?.voting?.currentPlayerId ?? ''}` : ''
           }`}>
             {game === 'quiplash' && gameState === 'answering' && renderQuiplashAnswering()}
             {game === 'quiplash' && gameState === 'voting' && renderQuiplashVoting()}
             {game === 'fibbage' && gameState === 'answering' && renderFibbageAnswering()}
             {game === 'fibbage' && gameState === 'voting' && renderFibbageVoting()}
             {game === 'trivia' && gameState === 'answering' && renderTriviaAnswering()}
+            {game === 'sketchbluff' && gameState === 'answering' && renderSketchDrawing()}
+            {game === 'sketchbluff' && gameState === 'voting' && renderSketchVoting()}
             {(gameState === 'results') && renderResults()}
             {gameState === 'scoreboard' && renderScoreboard()}
             {(!gameState || gameState === 'lobby') && (

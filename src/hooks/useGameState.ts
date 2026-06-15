@@ -5,11 +5,13 @@ import {
   quiplashRoundRef,
   fibbageRoundRef,
   triviaRoundRef,
+  sketchBluffRoundRef,
 } from '../firebase/database'
 import type { SystemData } from '../types/room'
 import type { QuiplashRound } from '../types/quiplash'
 import type { FibbageRound } from '../types/fibbage'
 import type { TriviaRound } from '../types/trivia'
+import type { SketchBluffRound } from '../types/sketchbluff'
 
 export function useSystemData(roomCode: string | null) {
   const refFn = useMemo(
@@ -41,6 +43,14 @@ export function useTriviaRound(roomCode: string | null, round: number) {
     [roomCode, round]
   )
   return useFirebaseValue<TriviaRound>(refFn)
+}
+
+export function useSketchBluffRound(roomCode: string | null, round: number) {
+  const refFn = useMemo(
+    () => roomCode ? () => sketchBluffRoundRef(roomCode, round) : null,
+    [roomCode, round]
+  )
+  return useFirebaseValue<SketchBluffRound>(refFn)
 }
 
 export function useRemainingTime(timerStartedAt: number | undefined, timerDuration: number | undefined): number {
