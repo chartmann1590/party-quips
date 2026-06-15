@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import PhoneLayout from '../components/layout/PhoneLayout'
 import { useAuthStore } from '../store/authStore'
-import { signInWithGoogle, signInWithEmail, createEmailAccount, signOut } from '../firebase/stripeAuth'
+import { signInWithGoogle, handleGoogleRedirectResult, signInWithEmail, createEmailAccount, signOut } from '../firebase/stripeAuth'
 import { CONTENT_PACKS, PACK_ORDER } from '../lib/contentPacks'
 
 type AuthView = 'choose' | 'signin' | 'signup'
@@ -16,16 +16,29 @@ export default function AccountPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const didHandleRedirect = useRef(false)
+
+  // Process Google redirect result on page load (after returning from Google auth)
+  useEffect(() => {
+    if (didHandleRedirect.current) return
+    didHandleRedirect.current = true
+    handleGoogleRedirectResult()
+      .then(user => {
+        if (user) navigate(-1)
+      })
+      .catch(e => {
+        setError(e instanceof Error ? e.message : 'Google sign-in failed')
+      })
+  }, [navigate])
 
   async function handleGoogle() {
     setLoading(true)
     setError('')
     try {
       await signInWithGoogle()
-      navigate(-1)
+      // signInWithGoogle triggers a redirect — execution stops here
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Sign-in failed')
-    } finally {
       setLoading(false)
     }
   }
