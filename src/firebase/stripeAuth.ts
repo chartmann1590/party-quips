@@ -1,13 +1,11 @@
 import {
   GoogleAuthProvider,
-  signInWithPopup,
   signInWithRedirect,
   signInWithCredential,
   getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
-  browserPopupRedirectResolver,
   type User,
 } from 'firebase/auth'
 import { Capacitor } from '@capacitor/core'
@@ -42,28 +40,16 @@ export async function signInWithGoogle(): Promise<User | void> {
     const result = await signInWithCredential(auth, credential)
     return loadAndSetUser(result.user)
   }
-  // Web browser: use popup. GitHub Pages has no COOP/X-Frame-Options headers,
-  // so window.opener is available and postMessage works cross-origin.
-  // Fall back to redirect only if popup is explicitly blocked by the browser.
-  try {
-    const result = await signInWithPopup(auth, googleProvider, browserPopupRedirectResolver)
-    return loadAndSetUser(result.user)
-  } catch (err: unknown) {
-    const code = (err as { code?: string }).code
-    if (code === 'auth/popup-blocked') {
-      // Popup was blocked (rare on mobile) — fall back to redirect
-      sessionStorage.setItem('googleRedirectPending', '1')
-      return signInWithRedirect(auth, googleProvider, browserPopupRedirectResolver)
-    }
-    throw err
-  }
+
+  sessionStorage.setItem('googleRedirectPending', '1')
+  return signInWithRedirect(auth, googleProvider)
 }
 
-// Called on every web page load to process a completed redirect sign-in fallback.
+// Called before anonymous auth starts so a completed web redirect is not lost.
 export async function handleGoogleRedirectResult(): Promise<User | null> {
   if (Capacitor.isNativePlatform()) return null
   try {
-    const result = await getRedirectResult(auth, browserPopupRedirectResolver)
+    const result = await getRedirectResult(auth)
     if (result?.user) {
       sessionStorage.removeItem('googleRedirectPending')
       sessionStorage.removeItem('googleRedirectError')
