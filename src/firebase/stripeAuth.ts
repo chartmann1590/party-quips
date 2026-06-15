@@ -1,12 +1,14 @@
 import {
   GoogleAuthProvider,
   signInWithRedirect,
+  signInWithCredential,
   getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   type User,
 } from 'firebase/auth'
+import { Capacitor } from '@capacitor/core'
 import { auth } from './config'
 import { getOwnedPackIds } from './purchases'
 import { useAuthStore } from '../store/authStore'
@@ -25,18 +27,27 @@ async function loadAndSetUser(user: User) {
   return user
 }
 
-// Full-page redirect to Google OAuth via Firebase auth handler.
-// Popup is blocked by GitHub Pages COOP headers; redirect is the only option.
-export async function signInWithGoogle(): Promise<void> {
+// On native Android: uses the native Google Sign-In SDK (no WebView/Custom Tab).
+// On web: full-page redirect via Firebase auth handler (popup blocked by GitHub Pages COOP).
+export async function signInWithGoogle(): Promise<User | void> {
+  if (Capacitor.isNativePlatform()) {
+    const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth')
+    await GoogleAuth.initialize({
+      clientId: '582819634867-l7716hit5r0s0reho7l881g5ee5lkmf4.apps.googleusercontent.com',
+      scopes: ['profile', 'email'],
+      grantOfflineAccess: true,
+    })
+    const googleUser = await GoogleAuth.signIn()
+    const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken)
+    const result = await signInWithCredential(auth, credential)
+    return loadAndSetUser(result.user)
+  }
   return signInWithRedirect(auth, googleProvider)
 }
 
-// Must be called on every page load — Firebase may redirect back to any route.
-// Works because signInWithRedirect uses Firebase's auth handler (not a popup),
-// so COOP does not apply. The getRedirectResult iframe reads from
-// party-quips-2026.firebaseapp.com which serves /__/firebase/init.json
-// now that Firebase Hosting is deployed.
+// Must be called on every page load for web — Firebase may redirect back to any route.
 export async function handleGoogleRedirectResult(): Promise<User | null> {
+  if (Capacitor.isNativePlatform()) return null
   try {
     const result = await getRedirectResult(auth)
     if (result?.user) {

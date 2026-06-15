@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "582819634867",
+    "firebase_url": "https://party-quips-2026-default-rtdb.firebaseio.com",
+    "project_id": "party-quips-2026",
+    "storage_bucket": "party-quips-2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:582819634867:android:25c137f00878652b309ac6",
+        "android_client_info": {
+          "package_name": "io.github.chartmann1590.partyquips"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "582819634867-3nfe21ip85jkhebj4a6122upj7ur0ooa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.github.chartmann1590.partyquips",
+            "certificate_hash": "ad066b11eecddf89aa9246850e03eec1717a2bcc"
+          }
+        },
+        {
+          "client_id": "582819634867-l7716hit5r0s0reho7l881g5ee5lkmf4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTAAAde_ioyxcoOpugg_BQuibcvQjqfdg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "582819634867-l7716hit5r0s0reho7l881g5ee5lkmf4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

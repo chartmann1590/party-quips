@@ -30,8 +30,10 @@ export default function AccountPage() {
     setLoading(true)
     setError('')
     try {
-      await signInWithGoogle()
-      // triggers full-page redirect — execution stops here
+      const result = await signInWithGoogle()
+      // On web this triggers a full-page redirect and never returns.
+      // On native Android it returns the signed-in user immediately.
+      if (result) navigate(-1)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Sign-in failed')
       setLoading(false)

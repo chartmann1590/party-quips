@@ -5,18 +5,16 @@ const config: CapacitorConfig = {
   appName: 'Party Quips',
   webDir: 'dist',
   server: {
-    // Load the live GitHub Pages site so updates auto-deploy without rebuilding the APK
     url: 'https://chartmann1590.github.io/party-quips/',
     cleartext: false,
-    // Keep Firebase auth redirect and Google OAuth inside the WebView so
-    // sessionStorage and IndexedDB are shared throughout the redirect chain.
-    // Without this, Capacitor opens these in Chrome Custom Tabs which don't
-    // share storage with the WebView, causing signInWithRedirect to lose state.
-    allowNavigation: [
-      'party-quips-2026.firebaseapp.com',
-      'accounts.google.com',
-      '*.google.com',
-    ],
+  },
+  plugins: {
+    GoogleAuth: {
+      scopes: ['profile', 'email'],
+      // Web client ID — used as serverClientId so the ID token is issued for our server
+      serverClientId: '582819634867-l7716hit5r0s0reho7l881g5ee5lkmf4.apps.googleusercontent.com',
+      forceCodeForRefreshToken: true,
+    },
   },
   android: {
     backgroundColor: '#0f0f1a',
