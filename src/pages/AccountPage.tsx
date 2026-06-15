@@ -22,7 +22,7 @@ export default function AccountPage() {
   // Navigate back only when the user was NOT already signed in when this page mounted.
   useEffect(() => {
     if (!wasSignedInOnMount.current && isSignedIn) {
-      navigate(-1)
+      navigate('/')
     }
   }, [isSignedIn, navigate])
 
@@ -33,7 +33,7 @@ export default function AccountPage() {
       const result = await signInWithGoogle()
       // On web this triggers a full-page redirect and never returns.
       // On native Android it returns the signed-in user immediately.
-      if (result) navigate(-1)
+      if (result) navigate('/')
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Sign-in failed')
       setLoading(false)
@@ -50,7 +50,7 @@ export default function AccountPage() {
       } else {
         await createEmailAccount(emailInput.trim(), password)
       }
-      navigate(-1)
+      navigate('/')
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Authentication failed')
     } finally {
@@ -146,7 +146,7 @@ export default function AccountPage() {
               Sign Out
             </button>
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate('/')}
               className="w-full font-label text-sm py-2 mt-2 transition-opacity hover:opacity-70"
               style={{ color: 'rgba(255,255,255,0.35)' }}
             >
@@ -280,7 +280,7 @@ export default function AccountPage() {
         </motion.div>
 
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/')}
           className="font-label text-xs text-center transition-opacity hover:opacity-70"
           style={{ color: 'rgba(255,255,255,0.35)' }}
         >
