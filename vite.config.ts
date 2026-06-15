@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  base: '/party-quips/',
+  base: process.env.VITE_BASE_PATH ?? '/party-quips/',
   build: {
     cssMinify: false,
   },
