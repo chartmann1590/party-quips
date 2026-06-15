@@ -17,23 +17,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ? String(req.query.voice)
     : 'Matthew'
 
-  // Primary: StreamElements (proxies AWS Polly)
+  // Primary: ttsmp3.com (free AWS Polly proxy, multiple voices, no auth required)
   try {
-    const url = `https://api.streamelements.com/kappa/v2/speech?voice=${voice}&text=${encodeURIComponent(text)}`
-    const r = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PartyQuips/1.0)' },
-      signal: AbortSignal.timeout(5000),
+    const body = new URLSearchParams({ msg: text, lang: voice, source: 'ttsmp3' })
+    const jsonRes = await fetch('https://ttsmp3.com/makemp3_new.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
+      signal: AbortSignal.timeout(6000),
     })
-    if (r.ok) {
-      const buf = Buffer.from(await r.arrayBuffer())
-      res.setHeader('Content-Type', 'audio/mpeg')
-      res.setHeader('Cache-Control', 'public, max-age=300')
-      res.send(buf)
-      return
+    if (jsonRes.ok) {
+      const json = await jsonRes.json() as { Error?: number; URL?: string }
+      if (json.Error === 0 && json.URL) {
+        const mp3 = await fetch(json.URL, { signal: AbortSignal.timeout(5000) })
+        if (mp3.ok) {
+          const buf = Buffer.from(await mp3.arrayBuffer())
+          res.setHeader('Content-Type', 'audio/mpeg')
+          res.setHeader('Cache-Control', 'public, max-age=300')
+          res.send(buf)
+          return
+        }
+      }
     }
-    console.warn('[TTS] StreamElements returned', r.status)
+    console.warn('[TTS] ttsmp3.com failed')
   } catch (err) {
-    console.warn('[TTS] StreamElements error:', err instanceof Error ? err.message : err)
+    console.warn('[TTS] ttsmp3.com error:', err instanceof Error ? err.message : err)
   }
 
   // Fallback: Google Translate TTS
