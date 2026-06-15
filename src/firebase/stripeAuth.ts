@@ -1,5 +1,6 @@
 import {
   GoogleAuthProvider,
+  signInWithPopup,
   signInWithRedirect,
   signInWithCredential,
   getRedirectResult,
@@ -27,8 +28,10 @@ async function loadAndSetUser(user: User) {
   return user
 }
 
-// On native Android: uses the native Google Sign-In SDK (no WebView/Custom Tab).
-// On web: full-page redirect via Firebase auth handler (popup blocked by GitHub Pages COOP).
+// On native Android: uses the native Google Sign-In SDK.
+// On web: tries signInWithPopup first (Firebase v12 uses BroadcastChannel so it
+// works even when window.opener is null due to GitHub Pages COOP headers).
+// Falls back to signInWithRedirect only if the popup was blocked or closed.
 export async function signInWithGoogle(): Promise<User | void> {
   if (Capacitor.isNativePlatform()) {
     const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth')
@@ -42,19 +45,31 @@ export async function signInWithGoogle(): Promise<User | void> {
     const result = await signInWithCredential(auth, credential)
     return loadAndSetUser(result.user)
   }
+
+  try {
+    const result = await signInWithPopup(auth, googleProvider)
+    return loadAndSetUser(result.user)
+  } catch (err: unknown) {
+    const code = (err as { code?: string }).code ?? ''
+    // Only fall back to redirect if the popup was blocked or explicitly closed
+    if (!['auth/popup-blocked', 'auth/popup-closed-by-user', 'auth/cancelled-popup-request'].includes(code)) {
+      throw err
+    }
+  }
+
+  // Redirect fallback for browsers that block popups entirely
   return signInWithRedirect(auth, googleProvider)
 }
 
-// Must be called on every page load for web — Firebase may redirect back to any route.
+// Called on every web page load to pick up a completed redirect sign-in.
 export async function handleGoogleRedirectResult(): Promise<User | null> {
   if (Capacitor.isNativePlatform()) return null
   try {
     const result = await getRedirectResult(auth)
-    if (result?.user) {
-      return loadAndSetUser(result.user)
-    }
+    if (result?.user) return loadAndSetUser(result.user)
     return null
-  } catch {
+  } catch (err) {
+    console.error('[auth] getRedirectResult failed:', err)
     return null
   }
 }
