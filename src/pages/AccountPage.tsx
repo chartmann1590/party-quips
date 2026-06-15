@@ -18,8 +18,16 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(false)
   const wasSignedInOnMount = useRef(isSignedIn)
 
+  // Show any error from a previous Google redirect attempt
+  useEffect(() => {
+    const redirectError = sessionStorage.getItem('googleRedirectError')
+    if (redirectError) {
+      setError(`Google sign-in failed: ${redirectError}`)
+      sessionStorage.removeItem('googleRedirectError')
+    }
+  }, [])
+
   // After Google redirect completes, App.tsx processes the result and isSignedIn flips true.
-  // Navigate back only when the user was NOT already signed in when this page mounted.
   useEffect(() => {
     if (!wasSignedInOnMount.current && isSignedIn) {
       navigate('/')
