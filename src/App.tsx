@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { HashRouter, Routes, Route } from 'react-router-dom'
+import { handleGoogleRedirectResult } from './firebase/stripeAuth'
 import HomePage from './pages/HomePage'
 import MobileHomePage from './pages/MobileHomePage'
 import HostLobbyPage from './pages/HostLobbyPage'
@@ -21,6 +23,10 @@ function HomeRoute() {
 }
 
 export default function App() {
+  useEffect(() => {
+    handleGoogleRedirectResult()
+  }, [])
+
   return (
     <HashRouter>
       <PWAInstallBanner />

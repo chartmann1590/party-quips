@@ -1,10 +1,7 @@
 import {
   GoogleAuthProvider,
   signInWithRedirect,
-  linkWithRedirect,
   getRedirectResult,
-  signInWithCredential,
-  OAuthCredential,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
@@ -28,16 +25,15 @@ async function loadAndSetUser(user: User) {
   return user
 }
 
-// Initiates Google sign-in via redirect (popup fails on GitHub Pages due to COOP headers)
+// Initiates Google sign-in via full-page redirect (popup fails on GitHub Pages due to COOP headers).
+// Always does a fresh sign-in — never linkWithRedirect, which breaks when the Google account
+// already exists in Firebase under a different uid.
 export async function signInWithGoogle(): Promise<void> {
-  const currentUser = auth.currentUser
-  if (currentUser?.isAnonymous) {
-    return linkWithRedirect(currentUser, googleProvider)
-  }
   return signInWithRedirect(auth, googleProvider)
 }
 
-// Call this on app load to process the result after returning from Google redirect
+// Processes the result after returning from Google redirect. Must be called on every page load
+// (not just AccountPage) because Firebase may redirect back to any page depending on hash routing.
 export async function handleGoogleRedirectResult(): Promise<User | null> {
   try {
     const result = await getRedirectResult(auth)
@@ -45,14 +41,8 @@ export async function handleGoogleRedirectResult(): Promise<User | null> {
       return loadAndSetUser(result.user)
     }
     return null
-  } catch (e: unknown) {
-    const err = e as { code?: string; credential?: unknown }
-    // If the Google account is already linked to another Firebase account, sign in as that account
-    if (err.code === 'auth/credential-already-in-use' && err.credential) {
-      const cred = await signInWithCredential(auth, err.credential as OAuthCredential)
-      return loadAndSetUser(cred.user)
-    }
-    throw e
+  } catch {
+    return null
   }
 }
 

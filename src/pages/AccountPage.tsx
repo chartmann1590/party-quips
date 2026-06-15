@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import PhoneLayout from '../components/layout/PhoneLayout'
 import { useAuthStore } from '../store/authStore'
-import { signInWithGoogle, handleGoogleRedirectResult, signInWithEmail, createEmailAccount, signOut } from '../firebase/stripeAuth'
+import { signInWithGoogle, signInWithEmail, createEmailAccount, signOut } from '../firebase/stripeAuth'
 import { CONTENT_PACKS, PACK_ORDER } from '../lib/contentPacks'
 
 type AuthView = 'choose' | 'signin' | 'signup'
@@ -16,27 +16,22 @@ export default function AccountPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const didHandleRedirect = useRef(false)
+  const wasSignedInOnMount = useRef(isSignedIn)
 
-  // Process Google redirect result on page load (after returning from Google auth)
+  // After Google redirect completes, App.tsx processes the result and isSignedIn flips true.
+  // Navigate back only when the user was NOT already signed in when this page mounted.
   useEffect(() => {
-    if (didHandleRedirect.current) return
-    didHandleRedirect.current = true
-    handleGoogleRedirectResult()
-      .then(user => {
-        if (user) navigate(-1)
-      })
-      .catch(e => {
-        setError(e instanceof Error ? e.message : 'Google sign-in failed')
-      })
-  }, [navigate])
+    if (!wasSignedInOnMount.current && isSignedIn) {
+      navigate(-1)
+    }
+  }, [isSignedIn, navigate])
 
   async function handleGoogle() {
     setLoading(true)
     setError('')
     try {
       await signInWithGoogle()
-      // signInWithGoogle triggers a redirect — execution stops here
+      // signInWithGoogle triggers a full-page redirect — execution stops here
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Sign-in failed')
       setLoading(false)
