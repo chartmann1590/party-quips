@@ -1,4 +1,4 @@
-import { loadKokoro, speakWithKokoro, stopKokoro } from './kokoroTts'
+import { loadKokoro, speakWithKokoro, stopKokoro, waitForNarration } from './kokoroTts'
 
 export type VoiceMode = 'cloud' | 'browser' | 'auto'
 
@@ -91,6 +91,14 @@ function getSelectedBrowserVoice(): SpeechSynthesisVoice | null {
   return pickBestBrowserVoice()
 }
 
+// Resolves when the current narration (cloud or browser) finishes.
+// Host pages await this before advancing to the next phase.
+let _narrationDone: Promise<void> = Promise.resolve()
+
+export function waitForCurrentNarration(): Promise<void> {
+  return _narrationDone
+}
+
 export function getTvNarrationSettings(): TvNarrationSettings {
   return settings
 }
@@ -118,19 +126,23 @@ export function getBrowserVoices(): SpeechSynthesisVoice[] {
   return getSynth()?.getVoices().filter(v => v.lang.toLowerCase().startsWith('en')) ?? []
 }
 
-function speakWebSpeech(script: string) {
+function speakWebSpeech(script: string): Promise<void> {
   const synth = getSynth()
-  if (!synth) return
+  if (!synth) return Promise.resolve()
   synth.cancel()
-  // Chrome silently drops speak() called immediately after cancel() — 50ms gap fixes it
-  setTimeout(() => {
-    const utterance = new SpeechSynthesisUtterance(script)
-    utterance.voice = getSelectedBrowserVoice()
-    utterance.rate = settings.rate
-    utterance.pitch = settings.pitch
-    utterance.volume = settings.volume
-    synth.speak(utterance)
-  }, 50)
+  return new Promise<void>(resolve => {
+    // Chrome silently drops speak() called immediately after cancel() — 50ms gap fixes it
+    setTimeout(() => {
+      const utterance = new SpeechSynthesisUtterance(script)
+      utterance.voice = getSelectedBrowserVoice()
+      utterance.rate = settings.rate
+      utterance.pitch = settings.pitch
+      utterance.volume = settings.volume
+      utterance.onend = () => resolve()
+      utterance.onerror = () => resolve()
+      synth.speak(utterance)
+    }, 50)
+  })
 }
 
 export function speakTvNarration(text: string, options: { force?: boolean } = {}) {
@@ -141,19 +153,22 @@ export function speakTvNarration(text: string, options: { force?: boolean } = {}
   const mode = settings.voiceMode
 
   if (mode === 'browser') {
-    speakWebSpeech(script)
+    _narrationDone = speakWebSpeech(script)
     return
   }
 
   if (mode === 'cloud') {
+    // speakWithKokoro sets up narrationPromise synchronously before its first await,
+    // so waitForNarration() captures the correct promise here.
     speakWithKokoro(script, settings.cloudVoice).catch(() => {})
+    _narrationDone = waitForNarration()
     return
   }
 
-  // auto: try cloud, fall back to browser only on actual failure
-  speakWithKokoro(script, settings.cloudVoice).then(ok => {
-    if (!ok) speakWebSpeech(script)
-  }).catch(() => speakWebSpeech(script))
+  // auto: try cloud first, fall back to browser on failure
+  _narrationDone = speakWithKokoro(script, settings.cloudVoice)
+    .then(ok => ok ? waitForNarration() : speakWebSpeech(script))
+    .catch(() => speakWebSpeech(script))
 }
 
 // Chrome/Edge return [] from getVoices() until voiceschanged fires — trigger early load

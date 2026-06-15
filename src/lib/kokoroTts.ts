@@ -1,4 +1,3 @@
-// Cloud TTS via Vercel API proxy — AWS Polly voices, no download, no WASM.
 const TTS_API = 'https://party-quips-api-six.vercel.app/api/tts'
 
 export const CLOUD_VOICES = [
@@ -19,6 +18,16 @@ export const CLOUD_VOICES = [
 export type CloudVoiceId = typeof CLOUD_VOICES[number]['id']
 
 let current: HTMLAudioElement | null = null
+let fetchAbort: AbortController | null = null
+
+// Resolves when the current narration finishes (or is stopped/aborted).
+// Always reflects the most recently-started narration.
+let narrationResolve: () => void = () => {}
+let narrationPromise: Promise<void> = Promise.resolve()
+
+export function waitForNarration(): Promise<void> {
+  return narrationPromise
+}
 
 export const isKokoroLoaded = (): boolean => true
 export const getKokoroProgress = (): number => 1
@@ -30,22 +39,52 @@ export function subscribeToKokoroProgress(cb: (pct: number) => void): () => void
 }
 
 export async function speakWithKokoro(text: string, voice: string = 'Matthew'): Promise<boolean> {
+  // Abort any in-flight fetch and stop any currently playing audio.
+  // This prevents two overlapping narrations when phases transition quickly.
+  fetchAbort?.abort()
+  stopKokoro()
+
+  const ac = new AbortController()
+  fetchAbort = ac
+  const timeout = setTimeout(() => ac.abort(), 8000)
+
+  // Set up a new narration promise for this invocation.
+  // Capture myResolve locally so abort/end events for THIS call resolve the right promise.
+  narrationPromise = new Promise<void>(r => { narrationResolve = r })
+  const myResolve = narrationResolve
+
   try {
-    stopKokoro()
     const url = `${TTS_API}?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(voice)}`
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
-    if (!res.ok) return false
+    const res = await fetch(url, { signal: ac.signal })
+    clearTimeout(timeout)
+
+    // Check if a newer call superseded us
+    if (!res.ok || fetchAbort !== ac) {
+      myResolve()
+      return false
+    }
     const blob = await res.blob()
-    if (!blob.size) return false
+    if (!blob.size || fetchAbort !== ac) {
+      myResolve()
+      return false
+    }
+
+    fetchAbort = null
     const objUrl = URL.createObjectURL(blob)
     const audio = new Audio(objUrl)
     current = audio
-    audio.onended = () => { URL.revokeObjectURL(objUrl); current = null }
-    // Do NOT await play() — it throws NotAllowedError on autoplay restriction
-    // which would cause a false-negative and trigger a double-speak fallback.
-    audio.play().catch(() => {})
+    audio.onended = () => {
+      URL.revokeObjectURL(objUrl)
+      current = null
+      myResolve()
+    }
+    // Do NOT await play() — autoplay restrictions throw NotAllowedError
+    // which would cause a false-negative and trigger double-speak fallback.
+    audio.play().catch(() => myResolve())
     return true
   } catch {
+    clearTimeout(timeout)
+    myResolve()
     return false
   }
 }
@@ -54,6 +93,7 @@ export function stopKokoro(): void {
   if (current) {
     current.pause()
     current = null
+    narrationResolve()
   }
 }
 

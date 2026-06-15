@@ -18,6 +18,7 @@ import HostTriviaGame from './HostTriviaGame'
 import { useRoomMeta, usePlayers } from '../hooks/useRoom'
 import { useQuiplashRound, useSystemData } from '../hooks/useGameState'
 import { useTvNarration } from '../hooks/useTvNarration'
+import { waitForCurrentNarration } from '../lib/tvNarration'
 import { useGameStore } from '../store/gameStore'
 import {
   startQuiplashGame,
@@ -225,6 +226,8 @@ export default function HostGamePage() {
     if (resultsTimer.current) clearTimeout(resultsTimer.current)
     resultsTimer.current = setTimeout(async () => {
       transitioning.current = true
+      // Wait for narrator to finish before advancing (cap at 12s so we never hang)
+      await Promise.race([waitForCurrentNarration(), new Promise(r => setTimeout(r, 12000))])
 
       const currentPromptId = roundData.voting?.currentPromptId
       const result = await advanceToNextQuiplashPrompt(roomCode, round, promptIds, currentPromptId)

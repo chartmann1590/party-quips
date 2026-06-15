@@ -12,6 +12,7 @@ import LoadingSpinner from '../components/shared/LoadingSpinner'
 import { useRoomMeta, usePlayers } from '../hooks/useRoom'
 import { useFibbageRound, useSystemData } from '../hooks/useGameState'
 import { useTvNarration } from '../hooks/useTvNarration'
+import { waitForCurrentNarration } from '../lib/tvNarration'
 import { useGameStore } from '../store/gameStore'
 import { startFibbageGame, beginFibbageVoting, resolveFibbageVoting, resolveContentLibrary } from '../lib/gameEngine'
 import type { ContentLibrary } from '../types/addOns'
@@ -179,6 +180,8 @@ export default function HostFibbageGame() {
     if (resultsTimer.current) clearTimeout(resultsTimer.current)
     resultsTimer.current = setTimeout(async () => {
       transitioning.current = true
+      // Wait for narrator to finish before advancing (cap at 12s so we never hang)
+      await Promise.race([waitForCurrentNarration(), new Promise(r => setTimeout(r, 12000))])
 
       const currentPromptId = currentRound.voting?.currentPromptId
       const currentIdx = currentPromptIds.indexOf(currentPromptId)
