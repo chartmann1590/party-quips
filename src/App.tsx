@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { HashRouter, Routes, Route } from 'react-router-dom'
+import { Capacitor } from '@capacitor/core'
 import { handleGoogleRedirectResult } from './firebase/stripeAuth'
 import HomePage from './pages/HomePage'
 import MobileHomePage from './pages/MobileHomePage'
@@ -15,7 +16,7 @@ import AccountPage from './pages/AccountPage'
 import PWAInstallBanner from './components/shared/PWAInstallBanner'
 import AndroidAppBanner from './components/shared/AndroidAppBanner'
 
-const isCapacitor = !!(window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
+const isCapacitor = Capacitor.isNativePlatform()
 const isMobileViewport = window.innerWidth < 768
 
 function HomeRoute() {
