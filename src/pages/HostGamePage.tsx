@@ -129,8 +129,9 @@ export default function HostGamePage() {
     if (!playerList.length) return
 
     const nonHostPlayers = playerList.filter(p => !p.isHost)
-    // Final lash: only playerA+playerB answer (1 prompt, 2 writers); rounds 1-2: each player answers 2 prompts
-    const totalAnswers = round < ROUNDS_TOTAL ? nonHostPlayers.length * 2 : 2
+    const totalAnswers = Object.values(roundData.prompts ?? {}).reduce((total, prompt) => {
+      return total + new Set([prompt.playerA, prompt.playerB]).size
+    }, 0)
 
     let submitted = 0
     for (const prompt of Object.values(roundData.prompts ?? {})) {

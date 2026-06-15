@@ -67,18 +67,22 @@ function assignQuiplashPrompts(
   const n = shuffledPlayers.length
   const qPool = library ? [...library.quiplashPrompts, ...library.quiplashFinalLash] : undefined
 
-  // Round 3 = final lash: all players answer same prompt
+  // Round 3 = final lash: everyone answers the same prompt through normal two-player matchups.
   if (round === ROUNDS_TOTAL) {
     const finalPool = library?.quiplashFinalLash
     const finalPrompt = getRandomFinalLashPrompt(usedIds, finalPool)
-    const promptId = `round${round}_final`
-    return {
-      [promptId]: {
+
+    const result: Record<string, { text: string; playerA: string; playerB: string }> = {}
+    for (let i = 0; i < n; i++) {
+      const promptId = `round${round}_final_${i}`
+      result[promptId] = {
         text: finalPrompt.text,
-        playerA: shuffledPlayers[0].id,
-        playerB: shuffledPlayers[1]?.id ?? shuffledPlayers[0].id,
-      },
+        playerA: shuffledPlayers[i].id,
+        playerB: shuffledPlayers[(i + 1) % n]?.id ?? shuffledPlayers[i].id,
+      }
     }
+    usedIds.add(finalPrompt.id)
+    return result
   }
 
   // Rounds 1-2: cyclic pairing — player i paired with player (i+1)%n
