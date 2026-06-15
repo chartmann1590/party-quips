@@ -94,7 +94,8 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
     }
     catch (err) {
         const msg = err instanceof Error ? err.message : 'Invalid signature';
-        res.status(400).send(`Webhook signature verification failed: ${msg}`);
+        console.warn('Webhook signature verification failed:', msg);
+        res.status(400).send('Webhook signature verification failed');
         return;
     }
     if (event.type === 'payment_intent.succeeded') {
