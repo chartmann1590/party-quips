@@ -1,6 +1,7 @@
 import {
   GoogleAuthProvider,
-  signInWithCredential,
+  signInWithRedirect,
+  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
@@ -11,8 +12,7 @@ import { getOwnedPackIds } from './purchases'
 import { useAuthStore } from '../store/authStore'
 import type { PackId } from '../types/addOns'
 
-// Google OAuth client ID (Firebase auto-created web client for party-quips-2026)
-const GOOGLE_CLIENT_ID = '582819634867-l7716hit5r0s0reho7l881g5ee5lkmf4.apps.googleusercontent.com'
+const googleProvider = new GoogleAuthProvider()
 
 async function loadAndSetUser(user: User) {
   const packIds = await getOwnedPackIds(user.uid)
@@ -25,54 +25,27 @@ async function loadAndSetUser(user: User) {
   return user
 }
 
-// Module-level GIS state — initialize() can only be called once per page load.
-let gisInitialized = false
-let gisErrorHandler: ((err: Error) => void) | null = null
+// Full-page redirect to Google OAuth via Firebase auth handler.
+// Popup is blocked by GitHub Pages COOP headers; redirect is the only option.
+export async function signInWithGoogle(): Promise<void> {
+  return signInWithRedirect(auth, googleProvider)
+}
 
-async function onGISCredential({ credential }: { credential: string }) {
+// Must be called on every page load — Firebase may redirect back to any route.
+// Works because signInWithRedirect uses Firebase's auth handler (not a popup),
+// so COOP does not apply. The getRedirectResult iframe reads from
+// party-quips-2026.firebaseapp.com which serves /__/firebase/init.json
+// now that Firebase Hosting is deployed.
+export async function handleGoogleRedirectResult(): Promise<User | null> {
   try {
-    const cred = GoogleAuthProvider.credential(credential)
-    const result = await signInWithCredential(auth, cred)
-    await loadAndSetUser(result.user)
-  } catch (err) {
-    gisErrorHandler?.(err instanceof Error ? err : new Error('Google sign-in failed'))
+    const result = await getRedirectResult(auth)
+    if (result?.user) {
+      return loadAndSetUser(result.user)
+    }
+    return null
+  } catch {
+    return null
   }
-}
-
-function ensureGISInitialized(): boolean {
-  const gis = (window as any).google?.accounts?.id
-  if (!gis) return false
-  if (!gisInitialized) {
-    gis.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: onGISCredential,
-      auto_select: false,
-      cancel_on_tap_outside: false,
-    })
-    gisInitialized = true
-  }
-  return true
-}
-
-/**
- * Renders the official Google Sign-In button into `container`.
- * Returns true if GIS was ready; false if the script hasn't loaded yet
- * (caller should retry).
- */
-export function renderGoogleSignInButton(
-  container: HTMLElement,
-  onError: (err: Error) => void
-): boolean {
-  if (!ensureGISInitialized()) return false
-  gisErrorHandler = onError
-  ;(window as any).google.accounts.id.renderButton(container, {
-    theme: 'outline',
-    size: 'large',
-    text: 'signin_with',
-    logo_alignment: 'center',
-    width: container.clientWidth > 0 ? container.clientWidth : 280,
-  })
-  return true
 }
 
 export async function signInWithEmail(email: string, password: string): Promise<User> {

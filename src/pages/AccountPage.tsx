@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import PhoneLayout from '../components/layout/PhoneLayout'
 import { useAuthStore } from '../store/authStore'
-import { renderGoogleSignInButton, signInWithEmail, createEmailAccount, signOut } from '../firebase/stripeAuth'
+import { signInWithGoogle, signInWithEmail, createEmailAccount, signOut } from '../firebase/stripeAuth'
 import { CONTENT_PACKS, PACK_ORDER } from '../lib/contentPacks'
 
 type AuthView = 'choose' | 'signin' | 'signup'
@@ -17,38 +17,26 @@ export default function AccountPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const wasSignedInOnMount = useRef(isSignedIn)
-  const googleBtnRef = useRef<HTMLDivElement>(null)
 
-  // When GIS completes sign-in, the auth store updates isSignedIn.
-  // Navigate back only when the user was NOT already signed in on mount.
+  // After Google redirect completes, App.tsx processes the result and isSignedIn flips true.
+  // Navigate back only when the user was NOT already signed in when this page mounted.
   useEffect(() => {
     if (!wasSignedInOnMount.current && isSignedIn) {
       navigate(-1)
     }
   }, [isSignedIn, navigate])
 
-  // Render the GIS Google Sign-In button when the choose view is shown.
-  // Poll until the GIS script is loaded (it's async/defer).
-  useEffect(() => {
-    if (view !== 'choose' || !googleBtnRef.current) return
-    const container = googleBtnRef.current
-    let intervalId: ReturnType<typeof setInterval>
-
-    const tryRender = () => {
-      if (renderGoogleSignInButton(container, (err) => setError(err.message))) {
-        clearInterval(intervalId)
-      }
+  async function handleGoogle() {
+    setLoading(true)
+    setError('')
+    try {
+      await signInWithGoogle()
+      // triggers full-page redirect — execution stops here
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Sign-in failed')
+      setLoading(false)
     }
-
-    tryRender()
-    intervalId = setInterval(tryRender, 100)
-    const timeoutId = setTimeout(() => clearInterval(intervalId), 10_000)
-
-    return () => {
-      clearInterval(intervalId)
-      clearTimeout(timeoutId)
-    }
-  }, [view])
+  }
 
   async function handleEmail() {
     if (!emailInput.trim() || !password) { setError('Enter email and password'); return }
@@ -195,12 +183,21 @@ export default function AccountPage() {
           <div className="p-6 flex flex-col gap-4">
             {view === 'choose' && (
               <>
-                {/* Google Sign-In button — rendered by Google Identity Services */}
-                <div
-                  ref={googleBtnRef}
-                  className="w-full flex justify-center"
-                  style={{ minHeight: '44px' }}
-                />
+                <button
+                  onClick={handleGoogle}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-3 py-3 rounded-xl font-label font-bold text-sm transition-all hover:opacity-90 active:scale-95"
+                  style={{ background: '#4285F4', color: '#fff', border: 'none' }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#fff"/>
+                    <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#fff"/>
+                    <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#fff"/>
+                    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#fff"/>
+                  </svg>
+                  {loading ? 'Signing in...' : 'Continue with Google'}
+                </button>
+
                 {error && (
                   <p className="text-xs text-center font-label" style={{ color: '#dc2626' }}>
                     ⚠️ {error}
