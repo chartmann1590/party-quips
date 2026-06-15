@@ -1,6 +1,6 @@
 // Cloud TTS via Vercel API proxy — no local model, no WASM, no download.
 // Audio is streamed from AWS Polly (Matthew voice) via StreamElements.
-const TTS_API = 'https://party-quips.vercel.app/api/tts'
+const TTS_API = 'https://party-quips-api-six.vercel.app/api/tts'
 
 let current: HTMLAudioElement | null = null
 
@@ -38,6 +38,7 @@ export function stopKokoro(): void {
 }
 
 // Pre-warm the serverless function so the first speech fires fast.
+// Pre-warm the serverless function on page open so first speech fires fast.
 if (typeof window !== 'undefined') {
-  fetch(`${TTS_API}?text=welcome+to+party+quips`, { cache: 'force-cache' }).catch(() => {})
+  fetch(`${TTS_API}?text=welcome`, { cache: 'force-cache' }).catch(() => {})
 }
