@@ -247,7 +247,7 @@ export default function AccountPage() {
                   placeholder="Email"
                   value={emailInput}
                   onChange={e => setEmailInput(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl font-label text-sm outline-none"
+                  className="w-full px-4 py-3 rounded-xl font-label text-sm outline-hidden"
                   style={{ background: '#f3f4f6', border: '2px solid #e5e7eb', color: '#1e1b4b' }}
                   onFocus={e => (e.target.style.borderColor = '#fbbf24')}
                   onBlur={e => (e.target.style.borderColor = '#e5e7eb')}
@@ -258,7 +258,7 @@ export default function AccountPage() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleEmail()}
-                  className="w-full px-4 py-3 rounded-xl font-label text-sm outline-none"
+                  className="w-full px-4 py-3 rounded-xl font-label text-sm outline-hidden"
                   style={{ background: '#f3f4f6', border: '2px solid #e5e7eb', color: '#1e1b4b' }}
                   onFocus={e => (e.target.style.borderColor = '#fbbf24')}
                   onBlur={e => (e.target.style.borderColor = '#e5e7eb')}

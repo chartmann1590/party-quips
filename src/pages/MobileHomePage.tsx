@@ -165,7 +165,7 @@ export default function MobileHomePage() {
                     onKeyDown={e => handleCharKeyDown(i, e)}
                     onFocus={e => e.target.select()}
                     disabled={loading}
-                    className="w-full h-full font-black text-center uppercase rounded-2xl outline-none transition-all duration-150"
+                    className="w-full h-full font-black text-center uppercase rounded-2xl outline-hidden transition-all duration-150"
                     style={{
                       caretColor: 'transparent',
                       background: '#fde047',
@@ -190,7 +190,7 @@ export default function MobileHomePage() {
 
             {/* Name */}
             <input
-              className="w-full text-center text-xl font-display font-bold px-4 py-3 rounded-xl outline-none transition-all"
+              className="w-full text-center text-xl font-display font-bold px-4 py-3 rounded-xl outline-hidden transition-all"
               placeholder="Your Name"
               value={name}
               maxLength={20}

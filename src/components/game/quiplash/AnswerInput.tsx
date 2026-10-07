@@ -60,7 +60,7 @@ export default function AnswerInput({ promptText, onSubmit, disabled = false, su
         <p className="text-text-muted font-body text-xs uppercase tracking-wider mb-2">Your Answer</p>
         <p className="font-body text-text-primary font-semibold mb-3 leading-relaxed">{promptText}</p>
         <textarea
-          className="w-full bg-game-bg text-text-primary font-body text-xl px-4 py-3 rounded-xl outline-none resize-none"
+          className="w-full bg-game-bg text-text-primary font-body text-xl px-4 py-3 rounded-xl outline-hidden resize-none"
           style={{ border: '2px solid rgba(45, 45, 78, 0.8)' }}
           placeholder="Type something funny..."
           rows={3}
