@@ -99,7 +99,7 @@ export default function HomePage() {
               </div>
 
               <input
-                className="font-display font-black text-center rounded-xl px-4 py-3 outline-none tracking-[0.3em] uppercase w-full transition-all duration-150"
+                className="font-display font-black text-center rounded-xl px-4 py-3 outline-hidden tracking-[0.3em] uppercase w-full transition-all duration-150"
                 style={{
                   fontSize: '2rem',
                   background: '#f3f4f6',

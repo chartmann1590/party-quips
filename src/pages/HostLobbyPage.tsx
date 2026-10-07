@@ -134,7 +134,7 @@ export default function HostLobbyPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="flex flex-col items-center gap-6 flex-[3]"
+            className="flex flex-col items-center gap-6 flex-3"
           >
             <RoomCode code={code} size="large" />
             <div
@@ -156,7 +156,7 @@ export default function HostLobbyPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="flex flex-col flex-[2] gap-6"
+            className="flex flex-col flex-2 gap-6"
           >
             <h2 className="font-display font-black text-3xl text-white">
               Players{' '}
