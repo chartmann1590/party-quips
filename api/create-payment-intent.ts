@@ -58,7 +58,7 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
 
   let intent
   try {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-02-24.acacia' })
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-02-24.acacia' as Stripe.LatestApiVersion })
     intent = await stripe.paymentIntents.create({
       amount: 999,
       currency: 'usd',

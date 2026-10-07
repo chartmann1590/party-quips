@@ -189,7 +189,7 @@ export default function TvNarrationControls() {
                   <select
                     value={settings.browserVoiceName ?? ''}
                     onChange={e => setTvNarrationSettings({ browserVoiceName: e.target.value || null })}
-                    className="w-full rounded-lg px-2 py-1.5 text-[10px] font-bold focus:outline-none"
+                    className="w-full rounded-lg px-2 py-1.5 text-[10px] font-bold focus:outline-hidden"
                     style={{
                       background: 'rgba(255,255,255,0.08)',
                       border: '1px solid rgba(255,255,255,0.15)',

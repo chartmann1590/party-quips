@@ -33,7 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { paymentIntentId } = (req.body ?? {}) as { paymentIntentId?: string }
   if (!paymentIntentId) { res.status(400).json({ error: 'Missing paymentIntentId' }); return }
 
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-02-24.acacia' })
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-02-24.acacia' as Stripe.LatestApiVersion })
 
   let intent: Stripe.PaymentIntent
   try { intent = await stripe.paymentIntents.retrieve(paymentIntentId) }
