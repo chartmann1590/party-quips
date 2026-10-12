@@ -16,7 +16,7 @@
     "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
     "@stripe/react-stripe-js": "^7.0.0",
     "@stripe/stripe-js": "^10.0.0",
-    "firebase": "^12.19.0",
+    "firebase": "^13.0.0",
     "framer-motion": "^14.0.0",
     "jose": "^6.2.12",
     "kokoro-js": "^1.2.1",
